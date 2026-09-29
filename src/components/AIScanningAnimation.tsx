@@ -13,11 +13,11 @@ export const AIScanningAnimation: React.FC<AIScanningAnimationProps> = ({
   onCancel
 }) => {
   const steps = [
-    { icon: Eye, label: 'Langkah 1 & 2: Menerima foto objek nyata...', color: 'text-blue-500', bg: 'bg-blue-50' },
-    { icon: Search, label: 'Langkah 3: NARASA AI menganalisis visual...', color: 'text-purple-500', bg: 'bg-purple-50' },
-    { icon: Link2, label: 'Langkah 4: Menghubungkan ke masalah kontekstual...', color: 'text-emerald-500', bg: 'bg-emerald-50' },
-    { icon: Brain, label: 'Langkah 5 & 7: Menyiapkan tantangan penalaran...', color: 'text-amber-500', bg: 'bg-amber-50' },
-    { icon: BookOpen, label: 'Langkah 6: Menyiapkan bantuan tutor scaffolding...', color: 'text-blue-600', bg: 'bg-blue-50' }
+    { icon: Eye, label: 'Menerima foto objek nyata...', color: 'text-blue-500', bg: 'bg-blue-50' },
+    { icon: Search, label: 'NARASA AI menganalisis visual...', color: 'text-purple-500', bg: 'bg-purple-50' },
+    { icon: Link2, label: 'Menghubungkan ke masalah kontekstual...', color: 'text-emerald-500', bg: 'bg-emerald-50' },
+    { icon: Brain, label: 'Menyiapkan tantangan penalaran...', color: 'text-amber-500', bg: 'bg-amber-50' },
+    { icon: BookOpen, label: 'Menyiapkan bantuan tutor scaffolding...', color: 'text-blue-600', bg: 'bg-blue-50' }
   ];
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
