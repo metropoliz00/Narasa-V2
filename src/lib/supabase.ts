@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { UserProfile, LearningMission, StudentActivitySession, TeacherInsight, AssessmentRecord, SchoolProfile, StudentGroup, ConceptQuiz, QuizSubmission, TeacherMissionFeedback } from '../types';
+import { UserProfile, LearningMission, StudentActivitySession, StudentExplorationDraft, TeacherInsight, AssessmentRecord, SchoolProfile, StudentGroup, ConceptQuiz, QuizSubmission, TeacherMissionFeedback } from '../types';
 import { getDefaultAvatar, UserGender } from '../data/avatarData';
 import { INITIAL_SYSTEM_USERS, DEFAULT_MISSIONS } from '../data/mock_data';
 import { INITIAL_CONCEPT_QUIZZES } from '../data/quizAndGroupData';
@@ -1069,6 +1069,221 @@ export async function dbUpsertSession(session: StudentActivitySession): Promise<
     } catch (e: any) {
       console.warn('Supabase upsert session error:', e?.message || e);
     }
+  }
+
+  return true;
+}
+
+// ==========================================
+// ACTIVE STUDENT EXPLORATION DRAFTS REPOSITORY (CROSS-DEVICE CONTINUITY)
+// ==========================================
+
+export async function dbSaveStudentDraft(draft: StudentExplorationDraft): Promise<boolean> {
+  if (!draft || !draft.studentId) return false;
+
+  const payload: StudentExplorationDraft = {
+    ...draft,
+    id: draft.id || `draft_${draft.studentId}`,
+    updatedAt: draft.updatedAt || new Date().toISOString()
+  };
+
+  // 1. Save to local storage for immediate offline / quick access
+  try {
+    localStorage.setItem(`narasa_active_exploration_${draft.studentId}`, JSON.stringify(payload));
+  } catch (e) {}
+
+  // 2. Persist to server-side central database (/api/student-drafts)
+  try {
+    await fetch('/api/student-drafts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    console.warn('Gagal menyimpan draf eksplorasi ke /api/student-drafts:', e);
+  }
+
+  // 3. Persist to Supabase student_sessions table as status='draft' (Multi-device cloud storage)
+  const client = getSupabaseClient();
+  if (client && payload.activeLearningBridge && payload.currentCapturedImage) {
+    try {
+      // Ensure user exists first
+      try {
+        const sanitizedId = String(draft.studentId).replace(/[^a-zA-Z0-9_-]/g, '');
+        await client.from('users').upsert({
+          id: draft.studentId,
+          name: draft.studentName || 'Murid Narasa',
+          role: 'student',
+          gender: 'male',
+          email: `${sanitizedId || 'murid'}@narasa.sch.id`,
+          school_name: 'SDN 01 Nusantara',
+          school_id: 'SDN01',
+          class_name: 'Kelas V-A',
+          class_id: 'class-5a',
+          status: 'active'
+        }, { onConflict: 'id' });
+      } catch (errUser) {}
+
+      // Ensure mission exists
+      if (draft.missionId) {
+        try {
+          await client.from('learning_missions').upsert({
+            id: draft.missionId,
+            title: draft.missionTitle || 'Misi Pembelajaran Kontekstual',
+            grade: 'Kelas V',
+            phase: 'Fase C',
+            subject: draft.subject || 'Tematik',
+            material: draft.missionTitle || 'Materi Eksplorasi',
+            cp: 'Memahami konsep pembelajaran kontekstual berbasis lingkungan nyata.',
+            tp: 'Menganalisis objek dan fenomena di sekitar lingkungan siswa.',
+            target_competency: 'both',
+            cognitive_level: 'C4-C6',
+            strict_curriculum_mode: true,
+            is_active: true
+          }, { onConflict: 'id' });
+        } catch (errMission) {}
+      }
+
+      const answersPayload = {
+        studentThinking: draft.studentThinking || '',
+        problemSolving: draft.problemSolving || '',
+        activeStep: draft.activeStep || 4,
+        unlockedScaffoldLevels: draft.unlockedScaffoldLevels || [1],
+        isChallengeActive: Boolean(draft.isChallengeActive),
+        updatedAt: payload.updatedAt
+      };
+
+      const supabaseDraftRow = {
+        id: `draft_${draft.studentId}`,
+        mission_id: draft.missionId || 'm-eksplorasi-mandiri',
+        mission_title: draft.missionTitle || 'Eksplorasi Kontekstual',
+        subject: draft.subject || 'Tematik',
+        student_id: draft.studentId,
+        student_name: draft.studentName || 'Murid Narasa',
+        image: draft.currentCapturedImage,
+        image_label: draft.currentImageLabel || 'Foto Pengamatan',
+        learning_bridge: draft.activeLearningBridge || {},
+        answers: answersPayload,
+        scaffolding_history: draft.scaffoldingHistory || [],
+        reflection: {},
+        presentation: [],
+        peer_questions: [],
+        completed_at: new Date().toISOString().split('T')[0],
+        status: 'draft',
+        metrics: {
+          literacyScore: 0,
+          numeracyScore: 0,
+          reasoningScore: 0,
+          scaffoldingUsedCount: (draft.scaffoldingHistory || []).length
+        }
+      };
+
+      await client.from('student_sessions').upsert(supabaseDraftRow, { onConflict: 'id' });
+    } catch (errCloud) {
+      console.warn('Supabase save student draft notice:', errCloud);
+    }
+  }
+
+  return true;
+}
+
+export async function dbFetchStudentDraft(studentId: string): Promise<StudentExplorationDraft | null> {
+  if (!studentId) return null;
+
+  // 1. Primary: Try fetching from Supabase Cloud (for multi-device sync)
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      const { data, error } = await client
+        .from('student_sessions')
+        .select('*')
+        .eq('student_id', studentId)
+        .eq('status', 'draft')
+        .order('updated_at', { ascending: false })
+        .limit(1);
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const row = data[0];
+        const answersObj = row.answers || {};
+        const draftFromCloud: StudentExplorationDraft = {
+          id: row.id,
+          studentId: row.student_id,
+          studentName: row.student_name,
+          missionId: row.mission_id,
+          missionTitle: row.mission_title,
+          subject: row.subject,
+          activeStep: typeof answersObj.activeStep === 'number' ? answersObj.activeStep : 4,
+          currentCapturedImage: row.image,
+          currentImageLabel: row.image_label,
+          activeLearningBridge: row.learning_bridge,
+          studentThinking: answersObj.studentThinking || '',
+          problemSolving: answersObj.problemSolving || '',
+          unlockedScaffoldLevels: Array.isArray(answersObj.unlockedScaffoldLevels) ? answersObj.unlockedScaffoldLevels : [1],
+          scaffoldingHistory: row.scaffolding_history || [],
+          isChallengeActive: Boolean(answersObj.isChallengeActive),
+          updatedAt: row.updated_at || new Date().toISOString()
+        };
+
+        try {
+          localStorage.setItem(`narasa_active_exploration_${studentId}`, JSON.stringify(draftFromCloud));
+        } catch (e) {}
+
+        return draftFromCloud;
+      }
+    } catch (e) {
+      console.warn('Supabase fetch draft notice:', e);
+    }
+  }
+
+  // 2. Secondary: Try fetching from centralized server database API (/api/student-drafts/:studentId)
+  try {
+    const res = await fetch(`/api/student-drafts/${studentId}`);
+    if (res.ok) {
+      const draftFromServer = await res.json();
+      if (draftFromServer && draftFromServer.activeLearningBridge && draftFromServer.currentCapturedImage) {
+        try {
+          localStorage.setItem(`narasa_active_exploration_${studentId}`, JSON.stringify(draftFromServer));
+        } catch (e) {}
+        return draftFromServer;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Fallback: LocalStorage
+  try {
+    const saved = localStorage.getItem(`narasa_active_exploration_${studentId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.activeLearningBridge && parsed.currentCapturedImage) {
+        return parsed;
+      }
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+export async function dbDeleteStudentDraft(studentId: string): Promise<boolean> {
+  if (!studentId) return true;
+
+  // 1. Remove from local storage
+  try {
+    localStorage.removeItem(`narasa_active_exploration_${studentId}`);
+    localStorage.removeItem(`narasa_workflow_draft_${studentId}_exploration`);
+  } catch (e) {}
+
+  // 2. Remove from centralized server database
+  try {
+    await fetch(`/api/student-drafts/${studentId}`, { method: 'DELETE' });
+  } catch (e) {}
+
+  // 3. Remove from Supabase
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      await client.from('student_sessions').delete().eq('id', `draft_${studentId}`);
+      await client.from('student_sessions').delete().eq('student_id', studentId).eq('status', 'draft');
+    } catch (e) {}
   }
 
   return true;

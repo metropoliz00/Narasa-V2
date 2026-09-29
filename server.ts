@@ -320,6 +320,72 @@ app.post("/api/mission-feedbacks", (req, res) => {
   }
 });
 
+// 3.2 DATABASE ENDPOINT: ACTIVE STUDENT EXPLORATION DRAFTS (MULTI-DEVICE RESUME)
+app.get("/api/student-drafts", (req, res) => {
+  try {
+    const drafts = readDbFile<any[]>("student_drafts.json", []);
+    const { studentId } = req.query;
+    if (studentId) {
+      const found = drafts.find((d: any) => d.studentId === studentId);
+      return res.json(found || null);
+    }
+    return res.json(drafts);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/student-drafts/:studentId", (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const drafts = readDbFile<any[]>("student_drafts.json", []);
+    const found = drafts.find((d: any) => d.studentId === studentId);
+    return res.json(found || null);
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/student-drafts", (req, res) => {
+  try {
+    const draft = req.body;
+    if (!draft || !draft.studentId) {
+      return res.status(400).json({ error: "studentId wajib diisi pada draf eksplorasi" });
+    }
+
+    const drafts = readDbFile<any[]>("student_drafts.json", []);
+    const draftPayload = {
+      ...draft,
+      id: draft.id || `draft_${draft.studentId}`,
+      updatedAt: draft.updatedAt || new Date().toISOString()
+    };
+
+    const idx = drafts.findIndex((d: any) => d.studentId === draft.studentId);
+    if (idx >= 0) {
+      drafts[idx] = draftPayload;
+    } else {
+      drafts.unshift(draftPayload);
+    }
+    writeDbFile("student_drafts.json", drafts);
+
+    return res.json({ success: true, draft: draftPayload });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/student-drafts/:studentId", (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const drafts = readDbFile<any[]>("student_drafts.json", []);
+    const filtered = drafts.filter((d: any) => d.studentId !== studentId);
+    writeDbFile("student_drafts.json", filtered);
+    return res.json({ success: true, deletedStudentId: studentId });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // 4. DATABASE ENDPOINT: STUDENT GROUPS
 app.get("/api/groups", (req, res) => {
   try {

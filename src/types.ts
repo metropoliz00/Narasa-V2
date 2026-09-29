@@ -492,6 +492,30 @@ export interface TeacherMissionFeedback {
   updatedAt: string;
 }
 
+export interface StudentExplorationDraft {
+  id?: string;
+  studentId: string;
+  studentName?: string;
+  missionId: string | null;
+  missionTitle?: string;
+  subject?: string;
+  activeStep: number;
+  currentCapturedImage: string;
+  currentImageLabel: string;
+  activeLearningBridge: AILearningBridgeResult;
+  studentThinking: string;
+  problemSolving: string;
+  unlockedScaffoldLevels: number[];
+  scaffoldingHistory: {
+    questionId: string;
+    level: 1 | 2 | 3 | 4;
+    hintText: string;
+    requestedAt: string;
+  }[];
+  isChallengeActive: boolean;
+  updatedAt: string;
+}
+
 export interface StudentActivitySession {
   id: string;
   missionId: string;

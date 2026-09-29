@@ -21,7 +21,8 @@ import {
   GroupObservationRecord,
   PresentationSettings,
   Subject,
-  SchoolProfile
+  SchoolProfile,
+  StudentExplorationDraft
 } from './types';
 import {
   INITIAL_GROUPS,
@@ -83,6 +84,9 @@ import {
   dbUpsertGroup,
   dbBulkUpsertGroups,
   dbDeleteGroup,
+  dbSaveStudentDraft,
+  dbFetchStudentDraft,
+  dbDeleteStudentDraft,
   isSupabaseConfigured,
   testSupabaseConnection
 } from './lib/supabase';
@@ -558,59 +562,106 @@ export default function App() {
   const [completedStudentAnswers, setCompletedStudentAnswers] = useState<StudentAnswers | null>(null);
   const [scaffoldingHistory, setScaffoldingHistory] = useState<{ questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[]>([]);
 
-  // Auto-save active exploration session to localStorage
-  useEffect(() => {
-    if (!isAuthenticated || !currentUser?.id) return;
-    const explorationDraftKey = `narasa_active_exploration_${currentUser.id}`;
-    if (activeLearningBridge && currentCapturedImage) {
-      try {
-        localStorage.setItem(
-          explorationDraftKey,
-          JSON.stringify({
-            activeLearningBridge,
-            currentCapturedImage,
-            currentImageLabel,
-            isChallengeActive,
-            activeMissionId: activeMission?.id || null,
-            updatedAt: new Date().toISOString()
-          })
-        );
-      } catch (e) {}
-    } else if (!isChallengeActive && !isReflectionOpen) {
-      try {
-        localStorage.removeItem(explorationDraftKey);
-      } catch (e) {}
-    }
-  }, [isAuthenticated, activeLearningBridge, currentCapturedImage, currentImageLabel, isChallengeActive, isReflectionOpen, activeMission, currentUser?.id]);
+  // Cross-device Cloud Draft States
+  const [activeCloudDraft, setActiveCloudDraft] = useState<StudentExplorationDraft | null>(null);
+  const [draftInitialStep, setDraftInitialStep] = useState<number>(4);
+  const [draftInitialThinking, setDraftInitialThinking] = useState<string>('');
+  const [draftInitialProblemSolving, setDraftInitialProblemSolving] = useState<string>('');
+  const [draftInitialUnlockedLevels, setDraftInitialUnlockedLevels] = useState<number[]>([1]);
+  const [draftInitialScaffoldingHistory, setDraftInitialScaffoldingHistory] = useState<{ questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[]>([]);
 
-  // Restore active exploration session draft on initial load
-  useEffect(() => {
-    if (!isAuthenticated || !currentUser?.id || activeLearningBridge) return;
+  // Load in-progress student draft from Database (Supabase Cloud + /api/student-drafts) for seamless multi-device resume
+  const syncStudentDraftFromDatabase = useCallback(async (studentId: string) => {
+    if (!studentId) return;
     try {
-      const explorationDraftKey = `narasa_active_exploration_${currentUser.id}`;
-      const saved = localStorage.getItem(explorationDraftKey);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (parsed && parsed.activeLearningBridge && parsed.currentCapturedImage) {
-          if (parsed.updatedAt) {
-            const draftAgeMs = Date.now() - new Date(parsed.updatedAt).getTime();
-            if (draftAgeMs > 24 * 60 * 60 * 1000) {
-              localStorage.removeItem(explorationDraftKey);
-              return;
-            }
-          }
-          setActiveLearningBridge(parsed.activeLearningBridge);
-          setCurrentCapturedImage(parsed.currentCapturedImage);
-          setCurrentImageLabel(parsed.currentImageLabel || 'Foto Murid');
-          setIsChallengeActive(Boolean(parsed.isChallengeActive));
-          if (parsed.activeMissionId) {
-            const foundMission = missions.find((m) => m.id === parsed.activeMissionId);
-            if (foundMission) setActiveMission(foundMission);
-          }
-        }
+      const draft = await dbFetchStudentDraft(studentId);
+      if (draft && draft.activeLearningBridge && draft.currentCapturedImage) {
+        setActiveCloudDraft(draft);
+      } else {
+        setActiveCloudDraft(null);
       }
-    } catch (e) {}
-  }, [isAuthenticated, currentUser?.id, missions]);
+    } catch (e) {
+      console.warn('Sync student draft error:', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated && currentUser?.id && currentUser.role === 'student') {
+      syncStudentDraftFromDatabase(currentUser.id);
+    } else {
+      setActiveCloudDraft(null);
+    }
+  }, [isAuthenticated, currentUser?.id, currentUser?.role, syncStudentDraftFromDatabase]);
+
+  // Handler to resume active cloud draft across devices
+  const handleResumeCloudDraft = (draftToResume: StudentExplorationDraft) => {
+    if (!draftToResume || !draftToResume.activeLearningBridge || !draftToResume.currentCapturedImage) return;
+
+    setActiveLearningBridge(draftToResume.activeLearningBridge);
+    setCurrentCapturedImage(draftToResume.currentCapturedImage);
+    setCurrentImageLabel(draftToResume.currentImageLabel || 'Foto Pengamatan');
+    setDraftInitialStep(draftToResume.activeStep || 4);
+    setDraftInitialThinking(draftToResume.studentThinking || '');
+    setDraftInitialProblemSolving(draftToResume.problemSolving || '');
+    setDraftInitialUnlockedLevels(draftToResume.unlockedScaffoldLevels || [1]);
+    setDraftInitialScaffoldingHistory(draftToResume.scaffoldingHistory || []);
+    setIsChallengeActive(true);
+
+    if (draftToResume.missionId) {
+      const foundMission = missions.find((m) => m.id === draftToResume.missionId);
+      if (foundMission) setActiveMission(foundMission);
+    }
+
+    toast.success(
+      'Melanjutkan Pembelajaran 🚀',
+      `Berhasil memuat pengamatan "${draftToResume.currentImageLabel || 'Objek Nyata'}" dari cloud database.`
+    );
+  };
+
+  // Handler to discard current cloud draft
+  const handleDiscardCloudDraft = async () => {
+    if (currentUser?.id) {
+      await dbDeleteStudentDraft(currentUser.id);
+    }
+    setActiveCloudDraft(null);
+    setActiveLearningBridge(null);
+    setCurrentCapturedImage(null);
+    setIsChallengeActive(false);
+    toast.info('Sesi Belajar Dihapus', 'Draf aktivitas sebelumnya telah dibersihkan dari database cloud.');
+  };
+
+  // Real-time Cloud Draft auto-save callback from InteractiveLearningWorkflow
+  const handleSaveDraftProgress = useCallback((progress: {
+    activeStep: number;
+    studentThinking: string;
+    problemSolving: string;
+    scaffoldingHistory: { questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[];
+    unlockedScaffoldLevels: number[];
+  }) => {
+    if (!currentUser?.id || !activeLearningBridge || !currentCapturedImage) return;
+
+    const targetMission = activeMission || FREE_EXPLORATION_MISSION;
+    const updatedDraft: StudentExplorationDraft = {
+      studentId: currentUser.id,
+      studentName: currentUser.name,
+      missionId: targetMission.id || null,
+      missionTitle: targetMission.title,
+      subject: targetMission.subject,
+      activeStep: progress.activeStep,
+      currentCapturedImage,
+      currentImageLabel,
+      activeLearningBridge,
+      studentThinking: progress.studentThinking,
+      problemSolving: progress.problemSolving,
+      unlockedScaffoldLevels: progress.unlockedScaffoldLevels,
+      scaffoldingHistory: progress.scaffoldingHistory,
+      isChallengeActive: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    setActiveCloudDraft(updatedDraft);
+    dbSaveStudentDraft(updatedDraft).catch((err) => console.warn('Autosave draft to DB error:', err));
+  }, [currentUser, activeLearningBridge, currentCapturedImage, currentImageLabel, activeMission]);
 
   // Active Presentation States
   const [activeSlides, setActiveSlides] = useState<PresentationSlide[]>([]);
@@ -997,6 +1048,34 @@ export default function App() {
         objectNameHint
       );
       setActiveLearningBridge(bridgeResult);
+
+      // Immediately save initial draft to cloud database & local state for cross-device continuity
+      if (currentUser?.id) {
+        const initialDraft: StudentExplorationDraft = {
+          studentId: currentUser.id,
+          studentName: currentUser.name,
+          missionId: targetMission.id || null,
+          missionTitle: targetMission.title,
+          subject: targetMission.subject,
+          activeStep: 4,
+          currentCapturedImage: imageDataUrl,
+          currentImageLabel: objectNameHint,
+          activeLearningBridge: bridgeResult,
+          studentThinking: '',
+          problemSolving: '',
+          unlockedScaffoldLevels: [1],
+          scaffoldingHistory: [],
+          isChallengeActive: true,
+          updatedAt: new Date().toISOString()
+        };
+        setActiveCloudDraft(initialDraft);
+        setDraftInitialStep(4);
+        setDraftInitialThinking('');
+        setDraftInitialProblemSolving('');
+        setDraftInitialUnlockedLevels([1]);
+        setDraftInitialScaffoldingHistory([]);
+        dbSaveStudentDraft(initialDraft).catch((err) => console.warn('Save initial draft to cloud DB error:', err));
+      }
     } catch (err: any) {
       if (err.message === 'QUOTA_EXCEEDED') {
         toast.info(
@@ -1093,6 +1172,12 @@ export default function App() {
         }
         localStorage.removeItem('narasa_challenge_draft_current');
       } catch (e) {}
+
+      // Clean up in-progress draft from Cloud Database
+      if (currentUser?.id) {
+        dbDeleteStudentDraft(currentUser.id).catch((e) => console.warn('Clean up cloud draft error:', e));
+        setActiveCloudDraft(null);
+      }
 
       // DIRECTLY push into database (both /api/sessions and Supabase)
       try {
@@ -1309,10 +1394,20 @@ export default function App() {
                     (s.missionId === activeMission?.id || s.teacherFeedback !== undefined)
                 )?.teacherFeedback
               }
+              initialStep={draftInitialStep}
+              initialThinking={draftInitialThinking}
+              initialProblemSolving={draftInitialProblemSolving}
+              initialScaffoldingHistory={draftInitialScaffoldingHistory}
+              initialUnlockedLevels={draftInitialUnlockedLevels}
+              onSaveDraftProgress={handleSaveDraftProgress}
               onCompleteChallenge={handleChallengeComplete}
               onRetakePhoto={() => {
                 setActiveLearningBridge(null);
                 setIsChallengeActive(false);
+                if (currentUser?.id) {
+                  dbDeleteStudentDraft(currentUser.id).catch(console.warn);
+                  setActiveCloudDraft(null);
+                }
                 if (isAuthenticated && currentRole === 'student') {
                   setIsCameraOpen(true);
                 }
@@ -1483,6 +1578,63 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* ACTIVE CLOUD DRAFT RESUME BANNER (CROSS-DEVICE CONTINUITY) */}
+                    {activeCloudDraft && !activeLearningBridge && (
+                      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl p-5 text-white shadow-lg border-2 border-blue-300 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-start md:items-center gap-3.5 min-w-0">
+                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border-2 border-white/40 shadow-inner bg-slate-900">
+                            <img
+                              src={activeCloudDraft.currentCapturedImage}
+                              alt={activeCloudDraft.currentImageLabel || 'Objek Pengamatan'}
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/20" />
+                          </div>
+                          <div className="space-y-1.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-[11px] font-extrabold bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                📍 {
+                                  activeCloudDraft.activeStep === 1 || activeCloudDraft.activeStep === 2
+                                    ? 'Objek & Foto'
+                                    : activeCloudDraft.activeStep === 3
+                                    ? 'Analisis AI'
+                                    : activeCloudDraft.activeStep === 4
+                                    ? 'Masalah Kontekstual'
+                                    : activeCloudDraft.activeStep === 5
+                                    ? 'Murid Berpikir'
+                                    : activeCloudDraft.activeStep === 6
+                                    ? 'Scaffolding'
+                                    : 'Pemecahan Masalah'
+                                }
+                              </span>
+                            </div>
+                            <h3 className="text-sm sm:text-base font-bold text-white truncate">
+                              {activeCloudDraft.currentImageLabel || activeCloudDraft.activeLearningBridge?.detectedObject || 'Pengamatan Objek Nyata'}
+                            </h3>
+                            <p className="text-xs text-white/90 font-medium">
+                              Kamu sedang mengerjakan misi: <strong className="text-amber-200">{activeCloudDraft.missionTitle || 'Eksplorasi Kontekstual'}</strong>. Ingin melanjutkan sekarang?
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 w-full md:w-auto shrink-0 pt-2 md:pt-0">
+                          <button
+                            onClick={handleDiscardCloudDraft}
+                            className="px-3 py-2.5 bg-white/15 hover:bg-white/25 text-white font-bold text-xs rounded-xl border border-white/20 transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            Mulai Baru
+                          </button>
+                          <button
+                            onClick={() => handleResumeCloudDraft(activeCloudDraft)}
+                            className="flex-1 md:flex-initial px-5 py-2.5 bg-white hover:bg-amber-50 text-blue-900 font-extrabold text-xs rounded-xl shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center justify-center gap-1.5 active:scale-95"
+                          >
+                            <span>Lanjutkan Belajar 🚀</span>
+                            <ArrowRight className="w-4 h-4 text-blue-900" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
                     {/* RECENT TEACHER AFFIRMATION & STEP FEEDBACK BANNER */}
                     {(() => {
                       const reviewedSession = sessions
@@ -1525,24 +1677,17 @@ export default function App() {
 
                     {/* 1.1 DASBOR PROGRES & KEMAMPUAN BELAJAR */}
                     <div className="bg-gradient-to-b from-slate-50/70 via-white to-blue-50/30 rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 shadow-xs space-y-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                          <span className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs shrink-0">
-                            <Trophy className="w-5 h-5 text-white" />
+                      <div className="flex items-center gap-2.5 pb-2.5 border-b border-slate-100">
+                        <span className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xs shrink-0">
+                          <Trophy className="w-5 h-5 text-white" />
+                        </span>
+                        <div className="min-w-0">
+                          <h2 className="text-sm sm:text-lg font-extrabold text-[#25324B] font-display leading-tight">
+                            Dasbor Progres Belajarmu 🚀
+                          </h2>
+                          <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate">
+                            Pantau pencapaian dan kedalaman pemahaman literasi & numerasimu setiap hari!
                           </span>
-                          <div className="min-w-0">
-                            <h2 className="text-sm sm:text-lg font-extrabold text-[#25324B] font-display leading-tight flex items-center gap-1.5 flex-wrap">
-                              Dasbor Progres Belajarmu 🚀
-                              <span className="text-[9px] sm:text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full border border-indigo-300 font-bold uppercase tracking-wider">Live</span>
-                            </h2>
-                            <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium block truncate">
-                              Pantau pencapaian dan kedalaman pemahaman literasi & numerasimu setiap hari!
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-xl self-start sm:self-auto shadow-2xs">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                          <span className="text-[10px] font-bold text-emerald-800">Sinkronisasi Aktif</span>
                         </div>
                       </div>
 

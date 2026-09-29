@@ -29,9 +29,6 @@ export const LearningWorkflowBreadcrumb: React.FC<LearningWorkflowBreadcrumbProp
           <span className="text-xs font-black text-slate-800">
             {currentStep.title}
           </span>
-          <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-            (Langkah {currentStepNumber} dari 9)
-          </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           {LEARNING_WORKFLOW_STEPS.map((s) => {
@@ -69,7 +66,7 @@ export const LearningWorkflowBreadcrumb: React.FC<LearningWorkflowBreadcrumbProp
               {title}
             </h3>
             <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
-              Langkah {currentStepNumber} / 9
+              {currentStepNumber} / 9
             </span>
           </div>
           <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium mt-0.5 truncate max-w-2xl">

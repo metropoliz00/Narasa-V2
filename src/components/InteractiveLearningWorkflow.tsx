@@ -45,6 +45,18 @@ interface InteractiveLearningWorkflowProps {
   mission: LearningMission | null;
   currentUser: UserProfile;
   teacherFeedback?: TeacherMissionFeedback;
+  initialStep?: number;
+  initialThinking?: string;
+  initialProblemSolving?: string;
+  initialScaffoldingHistory?: { questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[];
+  initialUnlockedLevels?: number[];
+  onSaveDraftProgress?: (progress: {
+    activeStep: number;
+    studentThinking: string;
+    problemSolving: string;
+    scaffoldingHistory: { questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[];
+    unlockedScaffoldLevels: number[];
+  }) => void;
   onCompleteChallenge: (
     answers: StudentAnswers,
     scaffoldingUsed: { questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[]
@@ -61,13 +73,22 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
   mission,
   currentUser,
   teacherFeedback,
+  initialStep,
+  initialThinking,
+  initialProblemSolving,
+  initialScaffoldingHistory,
+  initialUnlockedLevels,
+  onSaveDraftProgress,
   onCompleteChallenge,
   onRetakePhoto,
   onLaunchPresentation,
   onOpenReflection
 }) => {
   // Current active step in the 9-step learning journey (starts at Step 4 Contextual Problem or Step 3)
-  const [activeStep, setActiveStep] = useState<number>(4);
+  const [activeStep, setActiveStep] = useState<number>(() => {
+    if (typeof initialStep === 'number' && initialStep >= 1) return initialStep;
+    return 4;
+  });
   const [isPhotoZoomOpen, setIsPhotoZoomOpen] = useState(false);
 
   // Storage key for student draft
@@ -75,6 +96,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
   // Student Input States
   const [studentThinking, setStudentThinking] = useState<string>(() => {
+    if (initialThinking) return initialThinking;
     try {
       const saved = localStorage.getItem(draftKey);
       if (saved) {
@@ -86,6 +108,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
   });
 
   const [problemSolving, setProblemSolving] = useState<string>(() => {
+    if (initialProblemSolving) return initialProblemSolving;
     try {
       const saved = localStorage.getItem(draftKey);
       if (saved) {
@@ -97,10 +120,14 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
   });
 
   // Scaffolding state: unlocked levels (1 to 4)
-  const [unlockedScaffoldLevels, setUnlockedScaffoldLevels] = useState<number[]>([1]);
+  const [unlockedScaffoldLevels, setUnlockedScaffoldLevels] = useState<number[]>(() => {
+    if (Array.isArray(initialUnlockedLevels) && initialUnlockedLevels.length > 0) return initialUnlockedLevels;
+    return [1];
+  });
   const [scaffoldingHistory, setScaffoldingHistory] = useState<
     { questionId: string; level: 1 | 2 | 3 | 4; hintText: string; requestedAt: string }[]
   >(() => {
+    if (Array.isArray(initialScaffoldingHistory) && initialScaffoldingHistory.length > 0) return initialScaffoldingHistory;
     try {
       const saved = localStorage.getItem(draftKey);
       if (saved) {
@@ -111,26 +138,62 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
     return [];
   });
 
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(() => {
+    return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  });
+  const [isSavingToCloud, setIsSavingToCloud] = useState<boolean>(false);
 
-  // Auto-save to localStorage
+  // Sync state if initial props change (e.g. cloud resume loaded after mount)
   useEffect(() => {
-    if (studentThinking || problemSolving || scaffoldingHistory.length > 0) {
+    if (initialThinking && !studentThinking) setStudentThinking(initialThinking);
+    if (initialProblemSolving && !problemSolving) setProblemSolving(initialProblemSolving);
+    if (initialStep && initialStep !== activeStep) setActiveStep(initialStep);
+    if (Array.isArray(initialScaffoldingHistory) && initialScaffoldingHistory.length > scaffoldingHistory.length) {
+      setScaffoldingHistory(initialScaffoldingHistory);
+    }
+    if (Array.isArray(initialUnlockedLevels) && initialUnlockedLevels.length > unlockedScaffoldLevels.length) {
+      setUnlockedScaffoldLevels(initialUnlockedLevels);
+    }
+  }, [initialThinking, initialProblemSolving, initialStep, initialScaffoldingHistory, initialUnlockedLevels]);
+
+  // Real-time Debounced Auto-save to LocalStorage AND Database Cloud (/api/student-drafts & Supabase)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSavingToCloud(true);
+      const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      // 1. LocalStorage
       try {
-        const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         localStorage.setItem(
           draftKey,
           JSON.stringify({
             studentThinking,
             problemSolving,
             scaffoldingHistory,
+            unlockedScaffoldLevels,
+            activeStep,
             lastSavedAt: now
           })
         );
-        setLastSavedTime(now);
       } catch (e) {}
-    }
-  }, [studentThinking, problemSolving, scaffoldingHistory, draftKey]);
+
+      // 2. Parent callback -> Saves directly to Database Cloud
+      if (onSaveDraftProgress) {
+        onSaveDraftProgress({
+          activeStep,
+          studentThinking,
+          problemSolving,
+          scaffoldingHistory,
+          unlockedScaffoldLevels
+        });
+      }
+
+      setLastSavedTime(now);
+      setIsSavingToCloud(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [studentThinking, problemSolving, scaffoldingHistory, unlockedScaffoldLevels, activeStep, draftKey, onSaveDraftProgress]);
 
   // Read aloud helper for elementary students
   const handleReadAloud = (text: string) => {
@@ -257,12 +320,6 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
             );
           })}
         </div>
-
-        {lastSavedTime && (
-          <span className="text-[10px] text-slate-600 font-medium shrink-0 hidden sm:inline pl-2 border-l border-slate-200">
-            💾 Tersimpan {lastSavedTime}
-          </span>
-        )}
       </div>
 
       {/* Real-Time Teacher Affirmation & Step Feedback Banner */}
