@@ -1,0 +1,618 @@
+[
+  {
+    "id": "session-adit-interval-kpk",
+    "missionId": "mission-kpk-fpb",
+    "missionTitle": "Misi 1: Eksplorasi Pola Interval & Keteraturan Berulang",
+    "subject": "Matematika",
+    "studentId": "user-student-1",
+    "studentName": "Adit Pratama",
+    "image": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=800&auto=format&fit=crop&q=80",
+    "imageLabel": "Pola Susunan Undakan Tangga & Ubin Sekolah",
+    "learningBridge": {
+      "detectedObject": "Pola susunan undakan tangga dan ubin teratur",
+      "compatibility": "Strong",
+      "compatibilityReason": "Susunan undakan tangga dan penanda garis berulang adalah representasi interval waktu dan jarak yang sangat konkret untuk konsep KPK dan kelipatan.",
+      "observation": "Saya melihat susunan anak tangga sekolah dengan penanda reflektor garis setiap kelipatan tertentu dan ubin berjarak sama. Pola ini berulang secara teratur di setiap undakan.",
+      "context": "Pola keteraturan undakan dan interval langkah",
+      "learningBridge": "Susunan undakan bertingkat menunjukkan pola yang berulang secara berkala. Jika ada dua penanda dengan selang jarak atau kegiatan tertentu (misalnya bel piket setiap 4 menit dan alarm stasiun baca setiap 6 menit), waktu mereka berbunyi bersama dapat dihitung menggunakan Kelipatan Persekutuan Terkecil (KPK).",
+      "simpleMaterialSummary": "📌 **Pengertian & Konsep Inti:**\nKPK (Kelipatan Persekutuan Terkecil) adalah bilangan kelipatan terkecil yang sama dari dua bilangan atau lebih.\n\n🏷️ **Ciri-Ciri & Contoh Nyata:**\n- Ciri: Menanyakan waktu pertemuan bersama kembali.\n- Contoh: Interval bunyi bel sekolah, jadwal piket kelas, dan detak jarum jam.",
+      "soloTaxonomyLevel": "Relational",
+      "soloDescription": "Siswa berhasil menghubungkan pengamatan pola susunan undakan dengan konsep interval waktu berulang dan prinsip kelipatan persekutuan terkecil (KPK).",
+      "guidingQuestions": [
+        "Bagaimana susunan berulang yang teratur bisa membantu kita memperkirakan titik temu dua jadwal berbeda?",
+        "Pernahkah kamu memperhatikan bunyi bel sekolah yang berdering bersamaan? Kapan itu terjadi?"
+      ],
+      "subject": "Matematika",
+      "material": "Kelipatan Persekutuan Terkecil (KPK) & Faktor Persekutuan Terbesar (FPB)",
+      "learningTarget": "Menerapkan konsep KPK untuk mencari titik waktu pertemuan dua interval berulang",
+      "cognitiveLevel": "C4-C6",
+      "questions": [
+        {
+          "id": "q-kpk-1",
+          "stage": "challenge",
+          "title": "Tantangan Pemecahan Masalah",
+          "question": "Bel pengingat piket berbunyi setiap 4 menit, sedangkan alarm stasiun baca berbunyi setiap 6 menit. Jika berbunyi bersamaan pukul 08.00, kapan keduanya berbunyi bersamaan lagi?",
+          "inputType": "text",
+          "conceptTag": "Penentuan KPK"
+        },
+        {
+          "id": "q-kpk-2",
+          "stage": "reasoning",
+          "title": "Alasan dan Cara Berpikir",
+          "question": "Mengapa kamu memilih menggunakan konsep KPK dan bukan FPB?",
+          "inputType": "text",
+          "conceptTag": "Penalaran Matematis"
+        },
+        {
+          "id": "q-kpk-3",
+          "stage": "evidence",
+          "title": "Bukti & Langkah Perhitungan",
+          "question": "Tuliskan langkah perhitunganmu dengan jelas! Tunjukkan deret kelipatan.",
+          "inputType": "text",
+          "conceptTag": "Pembuktian Konkret"
+        }
+      ]
+    },
+    "answers": {
+      "challengeAnswer": "Kedua bel akan berbunyi bersamaan lagi setelah 12 menit, yaitu pada pukul 08.12 WIB.",
+      "reason": "Saya memilih konsep KPK karena kedua kegiatan berlangsung berulang secara berkala. Kita mencari waktu ke depan saat kedua kelipatan bertemu di titik yang sama paling cepat, bukan membagi benda.",
+      "evidence": "Kelipatan 4: 4, 8, 12, 16... Kelipatan 6: 6, 12, 18... Angka persekutuan terkecil yang sama adalah 12. Jadi waktu pertemuannya adalah 12 menit.",
+      "strategy": "Menuliskan tabel kelipatan di buku lalu mencari angka kembar pertama.",
+      "conclusion": "Dua peristiwa berulang dengan selang waktu 4 dan 6 menit pasti bertemu setiap 12 menit sekali."
+    },
+    "scaffoldingHistory": [
+      {
+        "questionId": "q-kpk-1",
+        "level": 1,
+        "hintText": "Coba tuliskan menit kelipatan 4 dan kelipatan 6.",
+        "requestedAt": "2026-09-22 08:30"
+      }
+    ],
+    "reflection": {
+      "q1Found": "Saya menemukan bahwa tangga sekolah punya pola pengulangan yang persis seperti kelipatan angka.",
+      "q2Learned": "Saya belajar bahwa masalah jadwal berulang dipecahkan memakai KPK.",
+      "q3Hardest": "Menjelaskan alasan logis mengapa bukan memakai FPB.",
+      "q4Solved": "Membayangkan dua orang melompat dengan langkah 4 dan 6.",
+      "q5Improvement": "Ingin mencoba menggunakan pohon faktor prima lebih cepat."
+    },
+    "presentation": [
+      {
+        "id": "slide-1",
+        "slideNumber": 1,
+        "title": "Hasil Eksplorasi Saya: Pola Interval & KPK",
+        "subtitle": "Misi Matematika Kontekstual — Kelas V-A SDN 01 Nusantara",
+        "content": "Halo teman-teman! Saya Adit Pratama. Hari ini saya menemukan matematika di pola keteraturan tangga sekolah.",
+        "image": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Beri salam pembuka dengan percaya diri.",
+        "layout": "title"
+      },
+      {
+        "id": "slide-2",
+        "slideNumber": 2,
+        "title": "Apa yang Saya Temukan?",
+        "subtitle": "Observasi Visual Objek Nyata",
+        "content": "Dari foto susunan undakan tangga dan ubin, saya melihat pola berulang dengan interval yang konsisten di setiap langkah.",
+        "bullets": [
+          "Susunan undakan bertingkat berjarak sama",
+          "Penanda langkah berjarak kelipatan teratur",
+          "Pola pengulangan jarak dan waktu yang konstan"
+        ],
+        "image": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Jelaskan foto yang kamu ambil.",
+        "layout": "split-photo"
+      },
+      {
+        "id": "slide-3",
+        "slideNumber": 3,
+        "title": "Hubungannya dengan Pelajaran",
+        "subtitle": "AI Learning Bridge: Pola Interval ke KPK",
+        "content": "Pola berulang adalah contoh nyata dari interval. Titik temu dua peristiwa berkala dihitung dengan Kelipatan Persekutuan Terkecil (KPK).",
+        "bullets": [
+          "Interval = waktu atau jarak yang berulang berkala",
+          "KPK = titik temu pertama dari dua interval berbeda",
+          "Pola nyata di sekitar sekolah"
+        ],
+        "speakingNotes": "Kaitkan pengamatan dengan materi KPK.",
+        "layout": "observation"
+      },
+      {
+        "id": "slide-4",
+        "slideNumber": 4,
+        "title": "Solusi Akhir & Pembuktian",
+        "subtitle": "Jawaban Tantangan Nyata",
+        "content": "Bel piket (4 menit) dan bel baca (6 menit) akan berbunyi bersamaan pada menit ke-12, yaitu pukul 08.12 WIB.",
+        "bullets": [
+          "Kelipatan 4: 4, 8, 12, 16, 20...",
+          "Kelipatan 6: 6, 12, 18, 24...",
+          "KPK (4, 6) = 12"
+        ],
+        "speakingNotes": "Sampaikan jawaban akhir dan perhitungannya.",
+        "layout": "solution"
+      },
+      {
+        "id": "slide-5",
+        "slideNumber": 5,
+        "title": "Kesimpulan & Refleksi",
+        "subtitle": "Hikmah Belajar Hari Ini",
+        "content": "Matematika ada di mana-mana di sekitar kita. Observasi nyata membuat rumus lebih mudah dimengerti.",
+        "bullets": [
+          "KPK sangat berguna menyinkronkan jadwal",
+          "Penalaran lebih penting daripada sekadar menghafal"
+        ],
+        "speakingNotes": "Tutup dengan salam dan ucapan terima kasih.",
+        "layout": "conclusion"
+      }
+    ],
+    "peerQuestions": [
+      {
+        "id": "pq-1",
+        "askerName": "Siti Rahma",
+        "question": "Bagaimana jika belnya setiap 4 menit dan 5 menit?",
+        "presenterAnswer": "Karena 4 dan 5 tidak punya faktor sekutu selain 1, KPK-nya 4 × 5 = 20 menit!",
+        "timestamp": "2026-09-22 09:00"
+      }
+    ],
+    "completedAt": "2026-09-22",
+    "status": "completed",
+    "metrics": {
+      "literacyScore": 88,
+      "numeracyScore": 94,
+      "reasoningScore": 92,
+      "scaffoldingUsedCount": 1
+    }
+  },
+  {
+    "id": "session-siti-klorofil-daun",
+    "missionId": "mission-ipas-ekosistem-2",
+    "missionTitle": "Misi: Penyelidikan Klorofil & Daun Hijau",
+    "subject": "IPAS",
+    "studentId": "user-student-2",
+    "studentName": "Siti Rahma",
+    "image": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=80",
+    "imageLabel": "Struktur Tulang Daun Mangga & Butiran Embun di Taman",
+    "learningBridge": {
+      "detectedObject": "Daun mangga hijau segar dengan tulang daun menyirip dan butiran embun",
+      "compatibility": "Strong",
+      "compatibilityReason": "Daun hijau dengan pembuluh vena menyirip adalah bukti fisik proses fotosintesis, keberadaan stomata, dan klorofil.",
+      "observation": "Saya memotret daun mangga di taman sekolah. Permukaan atasnya berwarna hijau tua mengilap dan terasa licin, sedangkan bagian bawahnya berwarna hijau lebih muda dengan urat-urat tulang daun yang menonjol jelas.",
+      "context": "Adaptasi tumbuhan dan proses fotosintesis",
+      "learningBridge": "Warna hijau pekat pada daun berasal dari zat klorofil yang bertugas menangkap sinar matahari untuk memasak makanan melalui fotosintesis. Tulang daun berfungsi seperti pipa pembuluh yang mengalirkan air dan hasil makanan.",
+      "simpleMaterialSummary": "📌 **Konsep Inti:**\nFotosintesis adalah proses tumbuhan mengolah air dan karbon dioksida menjadi glukosa dan oksigen dengan bantuan cahaya matahari dan klorofil.\n\n🏷️ **Bagian Penting:**\n1. Klorofil: zat hijau daun penangkap cahaya.\n2. Stomata: mulut daun untuk pertukaran gas.\n3. Tulang daun (xilem & floem): jaringan pengangkut air dan nutrisi.",
+      "soloTaxonomyLevel": "Relational",
+      "soloDescription": "Siswa mampu menghubungkan struktur warna dan bentuk tulang daun dengan mekanisme fotosintesis dan transportasi air.",
+      "guidingQuestions": [
+        "Mengapa bagian atas daun warnanya lebih hijau tua dibandingkan bagian bawahnya?",
+        "Apa yang terjadi jika tanaman disimpan di tempat yang sama sekali tidak terkena cahaya matahari?"
+      ],
+      "subject": "IPAS",
+      "material": "Fotosintesis & Struktur Jaringan Tumbuhan",
+      "learningTarget": "Mengidentifikasi fungsi klorofil dan struktur daun dalam mendukung fotosintesis",
+      "cognitiveLevel": "C4-C6",
+      "questions": [
+        {
+          "id": "q-foto-1",
+          "stage": "challenge",
+          "title": "Tantangan Penyelidikan Klorofil",
+          "question": "Mengapa bagian atas daun mangga ini berwarna hijau lebih pekat dibandingkan bagian bawahnya? Jelaskan hubungannya dengan proses fotosintesis!",
+          "inputType": "text",
+          "conceptTag": "Fungsi Klorofil & Jaringan Palisade"
+        },
+        {
+          "id": "q-foto-2",
+          "stage": "reasoning",
+          "title": "Penalaran Ilmiah",
+          "question": "Bagaimana tulang daun yang menyirip pada foto membuktikan adanya sistem pengangkutan zat pada tumbuhan?",
+          "inputType": "text",
+          "conceptTag": "Jaringan Pengangkut Xilem & Floem"
+        }
+      ]
+    },
+    "answers": {
+      "challengeAnswer": "Bagian atas daun berwarna hijau lebih pekat karena memiliki lapisan jaringan tiang (palisade) yang mengandung lebih banyak klorofil untuk menangkap cahaya matahari secara maksimal.",
+      "reason": "Cahaya matahari datang dari arah atas, sehingga tumbuhan beradaptasi menempatkan klorofil terbanyak di bagian permukaan atas agar fotosintesis berlangsung optimal.",
+      "evidence": "Ketika diamati di bawah sinar matahari pagi, bagian atas daun memantulkan cahaya dan warnanya hijau zamrud gelap, sedangkan bagian bawah lebih pucat dan memiliki pori-pori stomata.",
+      "strategy": "Membandingkan kedua sisi daun secara langsung dan mencatat perbedaan warna serta teksturnya.",
+      "conclusion": "Perbedaan warna daun membuktikan adaptasi struktur daun untuk mengoptimalkan penyerapan energi matahari saat fotosintesis."
+    },
+    "scaffoldingHistory": [],
+    "reflection": {
+      "q1Found": "Saya menemukan bahwa permukaan atas daun licin dan hijau pekat karena ada lapisan lilin dan banyak klorofil.",
+      "q2Learned": "Saya belajar bahwa fotosintesis menghasilkan oksigen yang dihirup manusia dan hewan.",
+      "q3Hardest": "Membedakan fungsi xilem dan floem pada tulang daun.",
+      "q4Solved": "Saya mengingat analogi: xilem mengangkut air dari bawah ke atas, floem mengedarkan hasil masakan ke seluruh tubuh.",
+      "q5Improvement": "Saya ingin meneliti tanaman yang daunnya berwarna merah atau ungu apakah juga punya klorofil."
+    },
+    "presentation": [
+      {
+        "id": "slide-1",
+        "slideNumber": 1,
+        "title": "Rahasia Hijau Daun: Investigasi Klorofil",
+        "subtitle": "Eksplorasi IPAS Fase C — Siti Rahma (Kelas V-A)",
+        "content": "Hai semua! Saya Siti Rahma. Saya mengamati daun mangga di taman sekolah untuk membongkar misteri fotosintesis.",
+        "image": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Beri salam dan perkenalkan objek penelitianmu.",
+        "layout": "title"
+      },
+      {
+        "id": "slide-2",
+        "slideNumber": 2,
+        "title": "Pengamatan Visual Daun Mangga",
+        "subtitle": "Bukti Nyata dari Alam Sekolah",
+        "content": "Daun memiliki dua sisi yang berbeda: sisi atas sangat hijau pekat dan sisi bawah berurat jelas.",
+        "bullets": [
+          "Warna hijau pekat di sisi atas (kaya klorofil)",
+          "Pola urat daun menyirip teratur",
+          "Butiran embun pagi menunjukkan adanya transpirasi"
+        ],
+        "image": "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Tunjukkan foto daun dan perbedaannya.",
+        "layout": "split-photo"
+      },
+      {
+        "id": "slide-3",
+        "slideNumber": 3,
+        "title": "Bagaimana Fotosintesis Terjadi?",
+        "subtitle": "Pabrik Oksigen Alami",
+        "content": "Klorofil menangkap foton cahaya, menyerap air lewat akar, dan karbon dioksida lewat stomata, lalu menghasilkan glukosa dan oksigen.",
+        "bullets": [
+          "Bahan baku: Air (H2O) + Karbon Dioksida (CO2)",
+          "Katalis: Cahaya Matahari + Klorofil",
+          "Hasil: Karbohidrat + Oksigen segar (O2)"
+        ],
+        "speakingNotes": "Jelaskan rumus fotosintesis dengan bahasa sederhana.",
+        "layout": "observation"
+      },
+      {
+        "id": "slide-4",
+        "slideNumber": 4,
+        "title": "Kesimpulan & Ajakan Menjaga Lingkungan",
+        "subtitle": "Pesan Konservasi Taman Sekolah",
+        "content": "Satu helai daun hijau adalah pabrik kehidupan yang memberi kita oksigen gratis setiap hari. Jagalah pepohonan sekolah kita!",
+        "bullets": [
+          "Rawat tanaman sekolah dengan menyiramnya teratur",
+          "Jangan merusak daun dan ranting pohon muda"
+        ],
+        "speakingNotes": "Tutup dengan pesan peduli lingkungan hidup.",
+        "layout": "conclusion"
+      }
+    ],
+    "peerQuestions": [
+      {
+        "id": "pq-siti-1",
+        "askerName": "Adit Pratama",
+        "question": "Siti, apakah daun yang sudah kuning masih bisa fotosintesis?",
+        "presenterAnswer": "Daun yang menguning klorofilnya sudah rusak atau hilang, jadi fotosintesisnya sudah berhenti atau sangat lemah.",
+        "timestamp": "2026-09-23 10:15"
+      }
+    ],
+    "completedAt": "2026-09-23",
+    "status": "completed",
+    "metrics": {
+      "literacyScore": 95,
+      "numeracyScore": 86,
+      "reasoningScore": 94,
+      "scaffoldingUsedCount": 0
+    }
+  },
+  {
+    "id": "session-budi-kipas-rotasi",
+    "missionId": "mission-kpk-fpb-2",
+    "missionTitle": "Misi 2: Pola Putaran Kipas Angin",
+    "subject": "Matematika",
+    "studentId": "user-student-3",
+    "studentName": "Budi Santoso",
+    "image": "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&auto=format&fit=crop&q=80",
+    "imageLabel": "Baling-baling Kipas Angin Plafon Ruang Kelas",
+    "learningBridge": {
+      "detectedObject": "Baling-baling kipas angin plafon dengan 3 bilah simetris",
+      "compatibility": "Strong",
+      "compatibilityReason": "Putaran kipas angin berkecepatan teratur dengan 3 bilah adalah objek nyata untuk konsep sudut putar, derajat lingkaran, dan kelipatan putaran.",
+      "observation": "Saya mengamati kipas angin di langit-langit kelas V-A. Kipas memiliki 3 bilah dengan jarak sudut yang sama besar, yaitu 120 derajat antar bilah.",
+      "context": "Pengukuran sudut dan kelipatan rotasi",
+      "learningBridge": "Satu putaran penuh adalah 360 derajat. Jika dibagi rata 3 bilah baling-baling, maka masing-masing membentuk sudut 120 derajat. Jika kipas berputar 5 kali per detik, kita bisa menghitung total derajat putarannya menggunakan kelipatan bilangan.",
+      "simpleMaterialSummary": "📌 **Konsep Inti:**\nLingkaran memiliki sudut satu putaran penuh 360°. Pembagian sudut simetris = 360° / jumlah bilah.\nKelipatan putaran = kecepatan putaran × waktu.",
+      "soloTaxonomyLevel": "Relational",
+      "soloDescription": "Siswa mampu menghitung pembagian sudut 360 derajat pada bilah baling-baling dan menghubungkannya dengan kelipatan rotasi.",
+      "guidingQuestions": [
+        "Berapa derajat sudut antara dua bilah kipas yang memiliki 3 baling-baling?",
+        "Jika kipas berputar 4 putaran penuh, berapa total derajat yang telah dilalui satu ujung bilah?"
+      ],
+      "subject": "Matematika",
+      "material": "Pengukuran Sudut & Kelipatan Derajat",
+      "learningTarget": "Menghitung sudut rotasi simetris dan kelipatan putaran benda berputar",
+      "cognitiveLevel": "C4",
+      "questions": [
+        {
+          "id": "q-budi-1",
+          "stage": "challenge",
+          "title": "Tantangan Sudut Kipas",
+          "question": "Kipas angin kelas memiliki 3 bilah yang simetris sempurna. Hitung besar sudut di antara dua bilah yang berdekatan!",
+          "inputType": "text",
+          "conceptTag": "Sudut Putaran Lingkaran"
+        }
+      ]
+    },
+    "answers": {
+      "challengeAnswer": "Besar sudut antara dua bilah kipas yang berdekatan adalah 120 derajat.",
+      "reason": "Satu putaran penuh lingkaran bernilai 360 derajat. Karena kipas memiliki 3 bilah dengan jarak yang sama persis, maka 360 dibagi 3 adalah 120 derajat.",
+      "evidence": "360° : 3 = 120°. Pembuktian: 120° + 120° + 120° = 360° (kembali ke titik awal).",
+      "strategy": "Mengukur sudut lingkaran penuh lalu membaginya rata dengan jumlah baling-baling.",
+      "conclusion": "Simetri putar pada kipas angin menggunakan prinsip pembagian sudut 360 derajat secara merata agar putarannya stabil dan tidak bergoyang."
+    },
+    "scaffoldingHistory": [],
+    "reflection": {
+      "q1Found": "Saya baru sadar bahwa jumlah bilah kipas angin dirancang dengan matematika agar seimbang.",
+      "q2Learned": "Satu lingkaran penuh selalu 360 derajat.",
+      "q3Hardest": "Membayangkan posisi sudut saat kipas sedang berputar kencang.",
+      "q4Solved": "Mengamati kipas saat dimatikan terlebih dahulu.",
+      "q5Improvement": "Ingin menghitung sudut pada kipas yang punya 4 atau 5 bilah."
+    },
+    "presentation": [
+      {
+        "id": "slide-1",
+        "slideNumber": 1,
+        "title": "Matematika di Balik Putaran Kipas Angin",
+        "subtitle": "Eksplorasi Sudut & Simetri — Budi Santoso (Kelas V-A)",
+        "content": "Halo kawan-kawan! Saya Budi Santoso. Pernahkah kalian mengamati kipas angin di langit-langit kelas kita?",
+        "image": "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Buka presentasi dengan pertanyaan pemantik.",
+        "layout": "title"
+      },
+      {
+        "id": "slide-2",
+        "slideNumber": 2,
+        "title": "Hasil Perhitungan Sudut Simetri",
+        "subtitle": "360 Derajat Dibagi 3 Bilah",
+        "content": "Kipas angin berputar seimbang karena masing-masing bilah membentuk sudut tumpul 120 derajat.",
+        "bullets": [
+          "Satu putaran lingkaran = 360°",
+          "Jumlah bilah = 3 buah",
+          "Sudut antarbilah = 360° ÷ 3 = 120°"
+        ],
+        "image": "https://images.unsplash.com/photo-1585338107529-13afc5f02586?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Tunjukkan hitungan 120 derajat pada diagram.",
+        "layout": "split-photo"
+      },
+      {
+        "id": "slide-3",
+        "slideNumber": 3,
+        "title": "Kesimpulan Rekayasa Kipas",
+        "subtitle": "Keseimbangan Fisika & Matematika",
+        "content": "Tanpa sudut yang presisi, kipas angin akan bergetar dan mudah rusak. Matematika memastikan kipas berputar seimbang dan menghasilkan angin sejuk!",
+        "speakingNotes": "Tutup dengan kesimpulan tentang pentingnya ketelitian matematika.",
+        "layout": "conclusion"
+      }
+    ],
+    "peerQuestions": [
+      {
+        "id": "pq-budi-1",
+        "askerName": "Zahra Aulia",
+        "question": "Budi, kalau kipasnya punya 4 bilah, sudutnya jadi berapa?",
+        "presenterAnswer": "Tinggal dihitung 360° ÷ 4 = 90°! Sudutnya jadi siku-siku persis.",
+        "timestamp": "2026-09-24 11:20"
+      }
+    ],
+    "completedAt": "2026-09-24",
+    "status": "completed",
+    "metrics": {
+      "literacyScore": 85,
+      "numeracyScore": 96,
+      "reasoningScore": 91,
+      "scaffoldingUsedCount": 0
+    }
+  },
+  {
+    "id": "session-zahra-teks-deskripsi",
+    "missionId": "mission-b-indo-deskripsi",
+    "missionTitle": "Misi: Detektif Kata & Struktur Teks Deskripsi Objek",
+    "subject": "Bahasa Indonesia",
+    "studentId": "user-student-4",
+    "studentName": "Zahra Aulia",
+    "image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop&q=80",
+    "imageLabel": "Pojok Baca & Rak Ensiklopedia Bergambar",
+    "learningBridge": {
+      "detectedObject": "Susunan buku ensiklopedia berjejer rapi di rak kayu pojok baca",
+      "compatibility": "Strong",
+      "compatibilityReason": "Koleksi buku di rak pojok baca adalah objek ideal untuk menyusun teks deskripsi berbasis panca indra (penglihatan, rabaan) dan struktur klasifikasi.",
+      "observation": "Saya memotret pojok baca kelas V-A. Ada rak kayu cokelat dengan deretan buku ensiklopedia bersampul tebal warna-warni yang disusun rapi berdasarkan ketebalan dan topik.",
+      "context": "Penyusunan teks deskripsi faktual berbasis pengamatan indrawi",
+      "learningBridge": "Teks deskripsi menggambarkan objek sehingga pembaca seolah melihat, mendengar, atau merasakan sendiri. Observasi warna sampul, aroma kertas buku, dan kerapian rak membantu menyusun kalimat perincian yang hidup.",
+      "simpleMaterialSummary": "📌 **Struktur Teks Deskripsi:**\n1. Identifikasi/Judul objek.\n2. Deskripsi bagian (perincian warna, bentuk, tekstur, susunan).\n3. Kesimpulan/Kesan umum penulis.",
+      "soloTaxonomyLevel": "Relational",
+      "soloDescription": "Siswa mampu menyusun deskripsi objektif dan terstruktur dari pengamatan visual pojok baca.",
+      "guidingQuestions": [
+        "Kata sifat apa saja yang paling tepat menggambarkan suasana pojok baca kelas?",
+        "Bagaimana urutan kalimat agar pembaca bisa membayangkan bentuk rak buku dari atas ke bawah?"
+      ],
+      "subject": "Bahasa Indonesia",
+      "material": "Teks Deskripsi & Kalimat Perincian",
+      "learningTarget": "Menulis teks deskripsi yang memuat kata sifat dan kalimat perincian panca indra",
+      "cognitiveLevel": "C4-C6",
+      "questions": [
+        {
+          "id": "q-zahra-1",
+          "stage": "challenge",
+          "title": "Tantangan Menulis Deskripsi",
+          "question": "Tuliskan 1 paragraf deskripsi bagian mengenai rak buku pojok baca kelas berdasarkan foto yang kamu ambil!",
+          "inputType": "text",
+          "conceptTag": "Penyusunan Paragraf Deskripsi"
+        }
+      ]
+    },
+    "answers": {
+      "challengeAnswer": "Rak buku pojok baca kelas V-A terbuat dari kayu jati berwarna cokelat madu yang kokoh. Di rak bagian atas, berjejer rapi lima jilid ensiklopedia sains bersampul tebal dengan gambar satwa dan tata surya yang berwarna cerah. Udara di sekitarnya harum khas kertas baru, mengundang siapa saja untuk segera duduk di karpet biru dan membaca.",
+      "reason": "Saya memilih kata sifat seperti 'berwarna cokelat madu', 'bersampul tebal', dan 'berwarna cerah' agar pembaca bisa membayangkan bentuk fisiknya dengan jelas tanpa harus melihat fotonya langsung.",
+      "evidence": "Paragraf saya memuat deskripsi penglihatan (warna cokelat, gambar satwa) dan penciuman (aroma kertas baru) yang sesuai dengan struktur teks deskripsi Kurikulum Merdeka.",
+      "strategy": "Mengamati foto dari kiri ke kanan lalu mencatat kata sifat yang tepat.",
+      "conclusion": "Teks deskripsi yang baik adalah teks yang berhasil memindahkan pengamatan nyata ke dalam imajinasi pembaca secara jelas dan menarik."
+    },
+    "scaffoldingHistory": [],
+    "reflection": {
+      "q1Found": "Saya menemukan bahwa detail kecil seperti wangi buku dan warna sampul membuat tulisan jadi jauh lebih menarik.",
+      "q2Learned": "Struktur teks deskripsi harus runtut dari perkenalan sampai perincian bagian.",
+      "q3Hardest": "Memilih padanan kata sifat yang bervariasi agar tidak mengulang kata 'bagus' atau 'indah'.",
+      "q4Solved": "Membuka kamus sinonim kata bahasa Indonesia.",
+      "q5Improvement": "Ingin mencoba mendeskripsikan suasana pasar tradisional."
+    },
+    "presentation": [
+      {
+        "id": "slide-1",
+        "slideNumber": 1,
+        "title": "Menghidupkan Kata Lewat Pengamatan Nyata",
+        "subtitle": "Karya Bahasa Indonesia — Zahra Aulia (Kelas V-A)",
+        "content": "Halo teman-teman! Saya Zahra Aulia. Hari ini saya membedah pojok baca kelas menjadi tulisan deskripsi yang memikat.",
+        "image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Beri salam dan perkenalkan judul karyamu.",
+        "layout": "title"
+      },
+      {
+        "id": "slide-2",
+        "slideNumber": 2,
+        "title": "Unsur Panca Indra dalam Teks Deskripsi",
+        "subtitle": "Menulis dengan Penglihatan & Rasa",
+        "content": "Teks deskripsi yang kuat menggunakan kata-kata indrawi yang tajam dan nyata.",
+        "bullets": [
+          "Indra Penglihatan: 'Cokelat madu', 'sampul tebal', 'karpet biru'",
+          "Indra Peraba: 'Permukaan kayu halus', 'kertas licin'",
+          "Indra Penciuman: 'Aroma segar kertas buku baru'"
+        ],
+        "image": "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Jelaskan bagaimana panca indra membantu menulis.",
+        "layout": "split-photo"
+      },
+      {
+        "id": "slide-3",
+        "slideNumber": 3,
+        "title": "Ayo Gemar Membaca!",
+        "subtitle": "Pojok Baca Sahabat Belajar Kita",
+        "content": "Membaca adalah jendela dunia. Melalui pojok baca yang nyaman, kosakata kita bertambah dan imajinasi kita terbang tinggi.",
+        "speakingNotes": "Ajak teman sekelas untuk makin rajin membaca buku.",
+        "layout": "conclusion"
+      }
+    ],
+    "peerQuestions": [
+      {
+        "id": "pq-zahra-1",
+        "askerName": "Dewi Lestari",
+        "question": "Zahra, apa bedanya teks deskripsi dengan teks cerita narasi?",
+        "presenterAnswer": "Kalau narasi ada alur waktu dan tokoh yang beraksi (kemarin, lalu, tiba-tiba). Kalau deskripsi fokus menggambarkan ciri-ciri fisik suatu benda atau tempat secara detail!",
+        "timestamp": "2026-09-25 09:30"
+      }
+    ],
+    "completedAt": "2026-09-25",
+    "status": "completed",
+    "metrics": {
+      "literacyScore": 98,
+      "numeracyScore": 82,
+      "reasoningScore": 93,
+      "scaffoldingUsedCount": 0
+    }
+  },
+  {
+    "id": "session-dewi-siklus-air",
+    "missionId": "mission-ipas-ekosistem-4",
+    "missionTitle": "Misi: Siklus Air & Penguapan Embun",
+    "subject": "IPAS",
+    "studentId": "user-student-5",
+    "studentName": "Dewi Lestari",
+    "image": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80",
+    "imageLabel": "Genangan Air Bersih & Butir Embun Halaman Sekolah",
+    "learningBridge": {
+      "detectedObject": "Genangan air jernih di dekat rumput halaman sekolah setelah hujan pagi",
+      "compatibility": "Strong",
+      "compatibilityReason": "Genangan air yang berangsur mengering saat terkena terik matahari adalah fenomena nyata proses evaporasi dalam siklus hidrologi.",
+      "observation": "Pukul 07.00 pagi ada genangan air hujan sedalam 2 cm di paving halaman sekolah. Pada pukul 11.00 siang saat matahari terik, genangan air tersebut telah surut dan mengering sepenuhnya.",
+      "context": "Siklus air, perubahan wujud benda, dan evaporasi",
+      "learningBridge": "Air yang mengering tidak hilang, melainkan berubah wujud dari cair menjadi gas (uap air) melalui proses evaporasi akibat kalor matahari. Uap air ini naik ke atmosfer, berkondensasi menjadi awan, lalu turun kembali sebagai hujan (presipitasi).",
+      "simpleMaterialSummary": "📌 **Tahapan Siklus Air:**\n1. Evaporasi: penguapan air permukaan akibat panas matahari.\n2. Kondensasi: uap air dingin mengembun membentuk awan.\n3. Presipitasi: titik air awan jatuh ke bumi sebagai hujan.\n4. Infiltrasi: penyerapan air ke dalam tanah.",
+      "soloTaxonomyLevel": "Relational",
+      "soloDescription": "Siswa mampu menghubungkan hilangnya genangan air dengan tahapan evaporasi pada siklus hidrologi global.",
+      "guidingQuestions": [
+        "Ke mana perginya air pada genangan halaman sekolah saat siang hari?",
+        "Mengapa jemuran baju basah bisa kering lebih cepat saat hari cerah dan berangin?"
+      ],
+      "subject": "IPAS",
+      "material": "Siklus Hidrologi & Perubahan Wujud Zat",
+      "learningTarget": "Menjelaskan tahapan evaporasi dan perubahan wujud cair ke gas dalam siklus air",
+      "cognitiveLevel": "C4-C6",
+      "questions": [
+        {
+          "id": "q-dewi-1",
+          "stage": "challenge",
+          "title": "Tantangan Detektif Evaporasi",
+          "question": "Jelaskan proses fisika apa yang menyebabkan genangan air hujan di paving sekolah mengering saat siang hari!",
+          "inputType": "text",
+          "conceptTag": "Evaporasi & Pengaruh Kalor"
+        }
+      ]
+    },
+    "answers": {
+      "challengeAnswer": "Genangan air mengering karena mengalami proses evaporasi (penguapan). Panas radiasi matahari memberikan energi kalor pada molekul air sehingga air berubah wujud dari zat cair menjadi gas berupa uap air yang naik ke udara.",
+      "reason": "Zat cair membutuhkan kalor untuk menguap. Suhu udara siang yang panas dan hembusan angin mempercepat laju penguapan partikel air ke udara.",
+      "evidence": "Pada pagi hari permukaan paving terasa dingin dan basah (suhu 24°C). Pada siang hari permukaan paving kering dan terasa hangat saat disentuh (suhu 33°C).",
+      "strategy": "Mengukur waktu pengeringan genangan dari pagi hingga istirahat siang.",
+      "conclusion": "Air di bumi tidak pernah berkurang atau bertambah jumlahnya, melainkan terus bersirkulasi dalam siklus air tertutup melalui evaporasi, kondensasi, dan hujan."
+    },
+    "scaffoldingHistory": [],
+    "reflection": {
+      "q1Found": "Saya membuktikan bahwa air yang lenyap sebenarnya hanya pindah wujud menjadi uap tak kasat mata.",
+      "q2Learned": "Siklus air menjaga ketersediaan air tawar di bumi secara alami.",
+      "q3Hardest": "Membedakan evaporasi (penguapan air permukaan) dan transpirasi (penguapan dari daun tumbuhan).",
+      "q4Solved": "Membuat tabel perbandingan kedua istilah tersebut.",
+      "q5Improvement": "Ingin membuat miniatur siklus air dalam toples kaca di kelas."
+    },
+    "presentation": [
+      {
+        "id": "slide-1",
+        "slideNumber": 1,
+        "title": "Ke Mana Perginya Air Hujan?",
+        "subtitle": "Penyelidikan Siklus Air — Dewi Lestari (Kelas V-A)",
+        "content": "Halo semuanya! Saya Dewi Lestari. Mengapa genangan air hujan di sekolah bisa lenyap saat siang? Mari kita selidiki!",
+        "image": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Buka presentasi dengan misteri ilmiah yang seru.",
+        "layout": "title"
+      },
+      {
+        "id": "slide-2",
+        "slideNumber": 2,
+        "title": "Perjalanan Molekul Air",
+        "subtitle": "Dari Halaman Sekolah Menuju Awan",
+        "content": "Air di halaman menguap menjadi uap air, berkumpul di langit menjadi awan, lalu siap menjadi hujan berikutnya.",
+        "bullets": [
+          "Pukul 07.00: Genangan air 2 cm (Cair)",
+          "Pukul 11.00: Paving kering sempurna (Gas/Uap Air)",
+          "Proses: Evaporasi didorong panas matahari"
+        ],
+        "image": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&auto=format&fit=crop&q=80",
+        "speakingNotes": "Jelaskan data waktu pengeringan genangan.",
+        "layout": "split-photo"
+      },
+      {
+        "id": "slide-3",
+        "slideNumber": 3,
+        "title": "Kesimpulan: Air Tidak Pernah Hilang",
+        "subtitle": "Keajaiban Daur Hidrologi",
+        "content": "Air yang kita minum hari ini mungkin adalah air hujan yang sama yang pernah ada ribuan tahun lalu! Hematlah air bersih demi masa depan.",
+        "speakingNotes": "Tutup dengan pesan bijak menjaga kelestarian air.",
+        "layout": "conclusion"
+      }
+    ],
+    "peerQuestions": [
+      {
+        "id": "pq-dewi-1",
+        "askerName": "Siti Rahma",
+        "question": "Dewi, apakah saat mendung air tetap bisa menguap?",
+        "presenterAnswer": "Tetap menguap tapi lajunya lebih lambat karena suhu udara lebih rendah dan kelembapan udara lebih tinggi.",
+        "timestamp": "2026-09-25 10:45"
+      }
+    ],
+    "completedAt": "2026-09-25",
+    "status": "completed",
+    "metrics": {
+      "literacyScore": 92,
+      "numeracyScore": 88,
+      "reasoningScore": 95,
+      "scaffoldingUsedCount": 0
+    }
+  }
+]

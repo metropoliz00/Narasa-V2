@@ -1,0 +1,80 @@
+[
+  {
+    "id": "pr-1790468900755",
+    "studentPrompt": "Jadilah detektif cerdas. Saya sedang melihat jam dinding untuk belajar KPK. Mengapa jarum berputar berulang? Jelaskan dengan analogi!",
+    "subject": "Matematika",
+    "material": "KPK dan FPB",
+    "evaluation": {
+      "promptScore": 95,
+      "promptLevel": "Master Prompter AI",
+      "detectedComponents": {
+        "role": true,
+        "context": true,
+        "inquiry": true,
+        "format": true
+      },
+      "coachFeedback": "Luar biasa! Kamu adalah Master Prompter sejati! Prompt kamu sudah memenuhi Formula R-K-T-F dengan sangat lengkap: ada Role (Detektif cerdas), Konteks (Jam dinding & KPK), Tanya (Mengapa berputar berulang), dan Format (Analogi). Keren sekali cara berpikirmu menghubungkan jam dinding dengan KPK!",
+      "boostedPrompt": "Hai Detektif Cerdas Matematika! Aku sedang mengamati jam dinding di sekolah untuk memecahkan misteri interval waktu berulang dan KPK. Mengapa jarum detik, menit, dan jam selalu berputar berulang dan bisa bertemu di angka yang sama? Jelaskan menggunakan analogi sirkuit balap yang seru, tunjukkan langkah perhitungan KPK untuk menemukan waktu bertemunya jarum jam, dan berikan misi rahasia untukku!",
+      "fullExplanation": {
+        "conceptIntro": "Halo Detektif Cilik! Jarum jam yang berputar berulang adalah contoh nyata dari peristiwa 'Interval Siklik' (perputaran berkala). Dalam matematika, waktu bertemunya jarum-jarum tersebut secara bersamaan dihitung menggunakan konsep KPK (Kelipatan Persekutuan Terkecil).",
+        "curiosityAnswer": "Jarum jam berputar berulang karena digerakkan oleh roda-roda gigi yang berputar dalam lingkaran penuh (360 derajat) dengan kecepatan yang berbeda namun tetap. Jarum detik berulang tiap 60 detik, jarum menit berulang tiap 60 menit, dan jarum jam berulang tiap 12 jam. Karena setiap jarum punya kelipatan waktu masing-masing, ada momen ajaib di mana kelipatan waktu mereka bertemu di angka yang sama persis. Momen pertemuan itulah yang disebut Kelipatan Persekutuan!",
+        "typesAndClassification": [
+          "Interval Detik (60 Detik): Siklus tercepat, kelipatan 60 detik menghasilkan 1 putaran penuh jarum detik.",
+          "Interval Menit (60 Menit): Jarum panjang menyelesaikan 1 putaran penuh setiap 3.600 detik (kelipatan ke-60 dari jarum detik).",
+          "Titik Temu KPK (Pertemuan Bersama): Waktu ketika dua atau lebih jarum bertemu kembali di titik awal, dihitung dengan mencari kelipatan waktu terkecil dari masing-masing jarum."
+        ],
+        "deepFacts": [
+          "Fakta Unik 1: Bangsa Babilonia kuno memilih angka 60 untuk putaran jam dan menit karena angka 60 memiliki sangat banyak faktor pembagi (FPB melimpah: 1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30, 60), sehingga sangat mudah dibagi dan disinkronkan!",
+          "Fakta Unik 2: Dalam 12 jam, jarum jam dan jarum menit tidak bertemu 12 kali, melainkan hanya 11 kali! Pertemuan pertama setelah pukul 12.00 terjadi pada pukul 1 lewat 5 menit lebih 27 detik."
+        ],
+        "funAnalogy": "Bayangkan 2 pelari di sirkuit lari bundar. Pelari Kilat (jarum menit) berlari kencang 1 putaran setiap 5 menit, sedangkan Pelari Santai (jarum jam) butuh 15 menit untuk 1 putaran. Jika mereka mulai bersamaan di garis start, kapan mereka akan bertemu kembali di garis start? Jawabannya adalah KPK dari 5 dan 15, yaitu menit ke-15! Begitulah cara kerja jarum jam berulang.",
+        "miniMission": "Misi Detektif: Perhatikan jam dinding saat tepat pukul 12.00 (kedua jarum berimpit di atas). Coba tebak dan amati, apakah saat pukul 01.05 kedua jarum benar-benar berimpit pas di angka 1? Buktikan apakah jarum pendek sudah sedikit bergeser!",
+        "nextCuriosityQuestions": [
+          "Jika lampu sirine sekolah berkedip tiap 4 detik dan bel berbunyi tiap 6 detik, pada detik ke berapa keduanya berbunyi bersamaan?",
+          "Bagaimana cara kita menggunakan FPB untuk membagi 24 permen dan 36 biskuit ke dalam kantong ulang tahun secara adil?"
+        ]
+      }
+    },
+    "createdAt": "2026-09-27T00:28:20.755Z"
+  },
+  {
+    "id": "pr-1790468891225",
+    "studentPrompt": "Jadilah ilmuwan cilik. Saya sedang mengamati jam dinding analog untuk belajar KPK. Mengapa jarum menit dan detik bisa berputar bersamaan dan di mana konsep KPK dipakai di dunia nyata? Jelaskan dengan analogi pahlawan super dan eksperimen mini!",
+    "subject": "Matematika",
+    "material": "KPK dan FPB dalam Kehidupan Sehari-hari",
+    "objectHint": "Jam dinding analog ruang kelas",
+    "evaluation": {
+      "promptScore": 100,
+      "promptLevel": "Master Prompter AI",
+      "detectedComponents": {
+        "role": true,
+        "context": true,
+        "inquiry": true,
+        "format": true
+      },
+      "coachFeedback": "Luar biasa! Prompt yang kamu buat sudah sangat lengkap dan jelas. Kamu sudah menyertakan peran, konteks objek, pertanyaan rasa ingin tahu, dan format yang kamu inginkan. AI bisa menjawab dengan super tajam!",
+      "boostedPrompt": "Jadilah seorang Detektif Matematika yang seru dan cerdas. Saya sedang mengamati \"Jam dinding analog ruang kelas\" untuk belajar materi \"KPK dan FPB dalam Kehidupan Sehari-hari\". Jadilah ilmuwan cilik. Saya sedang mengamati jam dinding analog untuk belajar KPK. Mengapa jarum menit dan detik bisa berputar bersamaan dan di mana konsep KPK dipakai di dunia nyata? Jelaskan dengan analogi pahlawan super dan eksperimen mini!. Tolong jelaskan rahasia sains/matematikanya dengan bahasa ramah anak, sertakan analogi yang keren, rincian jenis-jenisnya, dan 1 eksperimen mini yang bisa saya coba langsung!",
+      "fullExplanation": {
+        "conceptIntro": "Pertanyaan yang sangat cerdas! Pada materi **KPK dan FPB dalam Kehidupan Sehari-hari**, angka-angka di sekitar kita ternyata memiliki pola rahasia yang saling terhubung secara teratur, seperti detak jarum jam atau barisan undakan tangga.",
+        "curiosityAnswer": "Tahukah kamu? Konsep KPK dan FPB sebenarnya adalah \"kunci sinkronisasi alam\"! Para pembuat jam dan ilmuwan astronomi menggunakan KPK untuk menghitung kapan dua planet yang berputar dengan kecepatan berbeda akan berjejer lurus kembali di angkasa!",
+        "typesAndClassification": [
+          "1. Kelipatan Suatu Bilangan: Perkalian bilangan dengan deret angka asli (misal: 4, 8, 12, 16, 20...).",
+          "2. Kelipatan Persekutuan: Titik temu kelipatan yang bernilai sama antara dua bilangan atau lebih.",
+          "3. KPK (Terkecil): Titik temu kelipatan persekutuan yang paling awal atau terkecil.",
+          "4. Faktor & FPB: Bilangan pembagi habis yang sama untuk membagi kelompok benda secara adil tanpa sisa."
+        ],
+        "deepFacts": [
+          "Lampu lalu lintas di persimpangan jalan dirancang insinyur menggunakan perhitungan kelipatan persekutuan agar kendaraan tidak macet dan bertabrakan!",
+          "Tahun Kabisat (tanggal 29 Februari) muncul setiap 4 tahun sekali karena bumi butuh waktu 365,25 hari mengitari matahari — ini adalah contoh kelipatan alami waktu!"
+        ],
+        "funAnalogy": "Bayangkan dua superhero pelari: Kilat Merah melompat tiap 3 langkah, dan Kilat Biru melompat tiap 5 langkah. Garis tempat jejak kaki mereka menginjak tanah bersamaan untuk pertama kali adalah di langkah ke-15 (KPK)!",
+        "miniMission": "Ambil 12 tutup botol dan 18 kancing (atau kerikil kecil). Coba bagikan keduanya ke dalam sebanyak-banyaknya mangkuk kecil dengan isi yang sama rata tanpa sisa. Hitung berapa mangkuk yang kamu peroleh!",
+        "nextCuriosityQuestions": [
+          "Mengapa angka prima disebut sebagai 'batu bata penyusun semua angka di alam semesta'?",
+          "Bagaimana cara tercepat mencari KPK dari 3 angka berbeda sekaligus tanpa membuat pohon faktor yang panjang?"
+        ]
+      }
+    },
+    "createdAt": "2026-09-27T00:28:11.225Z"
+  }
+]

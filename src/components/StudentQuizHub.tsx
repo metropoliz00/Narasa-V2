@@ -1,0 +1,469 @@
+import React, { useState } from 'react';
+import literacyNumeracyHeroBg from '../assets/images/literasi_numerasi_bg_1790603989599.jpg';
+import { ConceptQuiz, QuizSubmission, UserProfile, LearningMission, StudentActivitySession, Subject } from '../types';
+import { ConceptQuizPlayer } from './ConceptQuizPlayer';
+import { dbDeleteQuizSubmission } from '../lib/supabase';
+import { toast } from './Toast';
+import {
+  Brain,
+  Award,
+  BookOpen,
+  Clock,
+  Sparkles,
+  Users,
+  Play,
+  CheckCircle2,
+  ChevronRight,
+  ChevronDown,
+  RotateCcw,
+  Zap,
+  Target,
+  BarChart2,
+  ShieldAlert,
+  Camera,
+  CheckSquare,
+  HelpCircle,
+  FileText,
+  Edit3,
+  Filter,
+  Lock,
+  Trash2,
+  Loader2
+} from 'lucide-react';
+
+interface StudentQuizHubProps {
+  quizzes: ConceptQuiz[];
+  currentUser: UserProfile;
+  quizSubmissions: QuizSubmission[];
+  onSubmitQuizResult: (submission: QuizSubmission) => void;
+  onDeleteQuizSubmission?: (submissionId: string) => void;
+  missions: LearningMission[];
+  sessions: StudentActivitySession[];
+  subjects?: Subject[];
+}
+
+export const StudentQuizHub: React.FC<StudentQuizHubProps> = ({
+  quizzes,
+  currentUser,
+  quizSubmissions,
+  onSubmitQuizResult,
+  onDeleteQuizSubmission,
+  missions,
+  sessions,
+  subjects = []
+}) => {
+  const [selectedSubject, setSelectedSubject] = useState<'all' | string>('all');
+  const [activeQuizToPlay, setActiveQuizToPlay] = useState<ConceptQuiz | null>(null);
+  const [submissionToDelete, setSubmissionToDelete] = useState<QuizSubmission | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Filter submissions for this user/group
+  const cName = (currentUser?.name || '').toLowerCase();
+  const mySubmissions = quizSubmissions.filter(
+    (s) => s.userId === currentUser.id || (s.userName || '').toLowerCase() === cName
+  );
+
+  const filteredQuizzes = quizzes.filter((q) => {
+    return selectedSubject === 'all' || q.subject === selectedSubject;
+  });
+
+  const averageScore = mySubmissions.length > 0
+    ? Math.round(mySubmissions.reduce((acc, s) => acc + s.score, 0) / mySubmissions.length)
+    : 0;
+
+  // Helper to check if student/group has completed all missions for the quiz's subject
+  const checkMissionsCompletedForSubject = (subject: string) => {
+    const subjectMissions = missions.filter(m => m.subject.toLowerCase() === subject.toLowerCase());
+    const completedMissions: string[] = [];
+
+    subjectMissions.forEach(m => {
+      const hasCompletedSession = sessions.some(s => 
+        s.missionId === m.id && 
+        (s.studentId === currentUser.id || (s.studentName || '').toLowerCase() === cName) &&
+        s.status === 'completed'
+      );
+      if (hasCompletedSession) {
+        completedMissions.push(m.title);
+      }
+    });
+
+    // If teacher/admin is previewing, bypass lock
+    const isStudent = currentUser.role === 'student';
+
+    return {
+      completedCount: completedMissions.length,
+      totalCount: subjectMissions.length,
+      isAllCompleted: !isStudent || (completedMissions.length >= subjectMissions.length && subjectMissions.length > 0),
+      completedMissions
+    };
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto space-y-5 sm:space-y-6 text-left pb-16">
+      {/* Hero Banner with White Theme & Literacy-Numeracy Background */}
+      <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-8 text-slate-900 relative overflow-hidden shadow-sm border border-slate-200/90 group">
+        {/* Background Image: Literacy & Numeracy */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <img
+            src={literacyNumeracyHeroBg}
+            alt="Literasi dan Numerasi Pendidikan Dasar"
+            className="w-full h-full object-cover object-right opacity-40 group-hover:scale-102 transition-transform duration-700"
+            referrerPolicy="no-referrer"
+          />
+          {/* Soft White Gradient Overlays for High Contrast & Readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/75 md:w-3/4 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-transparent to-white/40 pointer-events-none" />
+        </div>
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 sm:gap-6">
+          <div className="space-y-2 max-w-xl">
+            <h1 className="text-xl sm:text-3xl font-bold font-display tracking-tight text-[#1E293B] leading-snug">
+              Uji Pemahaman Konsep <span className="text-blue-600">Literasi & Numerasi</span>
+            </h1>
+
+            {currentUser.isGroup && currentUser.groupMembers && (
+              <div className="pt-1 text-xs text-amber-800 flex items-center gap-1.5 font-semibold flex-wrap">
+                <Users className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span>Anggota Tim: {currentUser.groupMembers.join(', ')}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Quick Summary Box */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
+              <div className="p-3 rounded-2xl bg-white/90 border border-slate-200/90 shadow-2xs text-center min-w-[100px] sm:min-w-[110px]">
+                <span className="text-[10px] text-slate-500 block font-semibold">Kuis Selesai</span>
+                <span className="text-lg sm:text-xl font-bold font-display text-emerald-600">
+                  {mySubmissions.length} / {quizzes.length}
+                </span>
+              </div>
+              <div className="p-3 rounded-2xl bg-white/90 border border-slate-200/90 shadow-2xs text-center min-w-[100px] sm:min-w-[110px]">
+                <span className="text-[10px] text-slate-500 block font-semibold">Rata-rata Nilai</span>
+                <span className="text-lg sm:text-xl font-bold font-display text-amber-600">
+                  {averageScore} / 100
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Filter Mata Pelajaran (Dropdown) */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Filter className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-slate-800 block">Pilih Mata Pelajaran</span>
+            <span className="text-[10px] sm:text-[11px] text-slate-500">Menampilkan {filteredQuizzes.length} kuis tantangan</span>
+          </div>
+        </div>
+
+        <div className="relative w-full sm:w-64">
+          <select
+            value={selectedSubject}
+            onChange={(e) => setSelectedSubject(e.target.value)}
+            className="w-full appearance-none px-4 py-2.5 pr-10 rounded-xl bg-slate-50 hover:bg-slate-100/80 border border-slate-200 text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-500 cursor-pointer shadow-2xs transition-all min-h-[42px]"
+          >
+            <option value="all">Semua Mapel ({quizzes.length})</option>
+            {subjects.map((subj) => (
+              <option key={subj.id} value={subj.name}>
+                {subj.name} ({quizzes.filter((q) => (q.subject || '').toLowerCase() === (subj.name || '').toLowerCase()).length})
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="w-4 h-4 text-slate-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+        </div>
+      </div>
+
+      {/* Quiz List Cards */}
+      {filteredQuizzes.length === 0 ? (
+        <div className="bg-white rounded-3xl p-8 sm:p-12 border-2 border-dashed border-slate-200 text-center space-y-4 shadow-2xs">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 mx-auto flex items-center justify-center border border-amber-200/80">
+            <HelpCircle className="w-7 h-7" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1.5">
+            <h3 className="text-base font-bold text-[#1E293B] font-display">
+              Belum Ada Paket Uji Pemahaman Konsep
+            </h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              Belum ada soal uji pemahaman yang dibuat oleh Guru di database. Silakan tunggu penugasan paket kuis baru dari Bapak/Ibu Guru atau selesaikan misi observasi terlebih dahulu.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        {filteredQuizzes.map((quiz) => {
+          const submission = mySubmissions.find((s) => s.quizId === quiz.id);
+          const isDone = !!submission;
+          const missionStatus = checkMissionsCompletedForSubject(quiz.subject);
+          const isLocked = !missionStatus.isAllCompleted;
+          const isNumeracy = quiz.subject.toLowerCase().includes('matematika');
+          const isLiteracy = quiz.subject.toLowerCase().includes('bahasa') || quiz.subject.toLowerCase().includes('ipa');
+
+          return (
+            <div
+              key={quiz.id}
+              className={`rounded-2xl sm:rounded-3xl p-4 sm:p-6 border-2 transition-all flex flex-col justify-between space-y-4 relative ${
+                isLocked
+                  ? 'bg-slate-50/80 border-slate-200 text-slate-400 opacity-95 shadow-none'
+                  : isDone
+                  ? 'bg-gradient-to-br from-emerald-50/80 via-white to-teal-50/50 border-emerald-300 shadow-2xs hover:shadow-md'
+                  : isNumeracy
+                  ? 'bg-gradient-to-br from-sky-50/70 via-white to-blue-50/40 border-sky-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5'
+                  : 'bg-gradient-to-br from-emerald-50/70 via-white to-teal-50/40 border-emerald-200 shadow-2xs hover:shadow-md hover:-translate-y-0.5'
+              }`}
+            >
+              <div className="space-y-3">
+                {/* Header tags */}
+                <div className="flex flex-wrap items-center justify-between gap-1.5">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-blue-100 text-blue-800 border border-blue-200">
+                      {quiz.subject}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-sky-50 text-sky-800 border border-sky-200">
+                      {isNumeracy ? '📐 Numerasi' : isLiteracy ? '🌱 Literasi' : '🌟 Terpadu'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 text-slate-700">
+                      {quiz.grade}
+                    </span>
+                    {quiz.isAiGenerated && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200 flex items-center gap-0.5">
+                        <Sparkles className="w-2.5 h-2.5 text-purple-600" /> AI
+                      </span>
+                    )}
+                  </div>
+
+                  {isLocked ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500 border border-slate-200 flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-slate-400" /> Terkunci
+                    </span>
+                  ) : isDone ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300 flex items-center gap-1 shadow-2xs">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Selesai ({submission.score}/100) 🌟
+                    </span>
+                  ) : (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 flex items-center gap-1 shadow-2xs">
+                      <Target className="w-3.5 h-3.5 text-amber-600" /> Siap Dikerjakan 🚀
+                    </span>
+                  )}
+                </div>
+
+                {/* Context photo thumbnail if available */}
+                {quiz.contextImage && (
+                  <div className={`h-32 rounded-2xl overflow-hidden border-2 border-slate-200 bg-slate-900 relative ${isLocked ? 'grayscale opacity-60' : ''}`}>
+                    <img
+                      src={quiz.contextImage}
+                      alt={quiz.title}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end p-2.5">
+                      <span className="text-[11px] text-white font-bold flex items-center gap-1">
+                        <BookOpen className="w-3 h-3 text-blue-300" /> Stimulus Visual
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Title and Description */}
+                <div>
+                  <h3 className={`text-sm sm:text-base font-bold leading-snug font-display ${isLocked ? 'text-slate-500 line-through decoration-slate-300' : 'text-[#1E293B]'}`}>
+                    {quiz.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed line-clamp-2 font-medium">
+                    {quiz.description}
+                  </p>
+                </div>
+
+                {/* Mission requirements status box */}
+                {isLocked ? (
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 text-xs text-amber-900 space-y-1.5">
+                    <div className="flex items-center gap-1.5 font-extrabold">
+                      <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>Uji Pemahaman Terkunci</span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+                      Selesaikan <strong>semua 4 Misi Eksplorasi</strong> untuk mata pelajaran <strong>{quiz.subject}</strong> agar ujian ini terbuka.
+                    </p>
+                    <div className="pt-0.5 flex items-center justify-between text-[11px]">
+                      <span className="font-bold text-slate-600">Misi Selesai:</span>
+                      <span className="px-2.5 py-0.5 bg-amber-200 rounded-lg font-black text-amber-900 border border-amber-300">
+                        {missionStatus.completedCount} / {missionStatus.totalCount} Misi
+                      </span>
+                    </div>
+                    <div className="flex gap-1.5 pt-1">
+                      {Array.from({ length: Math.max(1, missionStatus.totalCount) }).map((_, i) => (
+                        <div 
+                          key={i} 
+                          className={`h-2.5 flex-1 rounded-full ${
+                            i < missionStatus.completedCount ? 'bg-amber-500 shadow-2xs' : 'bg-slate-200'
+                          }`} 
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-2xl bg-emerald-100/70 border-2 border-emerald-200 text-xs text-emerald-950 flex items-start gap-2.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <div className="space-y-0.5 min-w-0">
+                      <span className="font-extrabold text-emerald-950 block">Akses Terbuka ✨</span>
+                      <p className="text-[11px] text-emerald-800 font-medium leading-relaxed">
+                        Kerja luar biasa! Seluruh {missionStatus.totalCount} misi telah diselesaikan. Uji pemahaman sekarang terbuka.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Previous Result Summary if completed */}
+                {isDone && !isLocked && (
+                  <div className="p-3.5 rounded-2xl bg-white border-2 border-emerald-200 text-xs space-y-1 shadow-2xs">
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-emerald-900">Predikat: {submission.predicate}</span>
+                      <span className="text-emerald-700 font-bold text-[11px]">{submission.completedAt}</span>
+                    </div>
+                    {submission.needsManualGrading && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-amber-900 bg-amber-100 px-2 py-0.5 rounded-md border border-amber-200">
+                        <Edit3 className="w-3 h-3" /> Menunggu koreksi guru
+                      </span>
+                    )}
+                    <p className="text-slate-600 text-[11px] leading-relaxed line-clamp-2 font-medium">
+                      {submission.feedback}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Button */}
+              <div className="pt-2 border-t border-slate-100 flex items-center gap-2">
+                <button
+                  disabled={isLocked}
+                  onClick={() => !isLocked && setActiveQuizToPlay(quiz)}
+                  className={`flex-1 py-3 rounded-2xl font-black text-xs flex items-center justify-center gap-2 transition-all min-h-[46px] shadow-xs cursor-pointer active:scale-98 ${
+                    isLocked
+                      ? 'bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none'
+                      : isDone
+                      ? 'bg-slate-900 hover:bg-slate-800 text-white'
+                      : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md shadow-blue-500/25'
+                  }`}
+                >
+                  {isLocked ? (
+                    <>
+                      <Lock className="w-4 h-4 text-slate-400" />
+                      <span>Selesaikan 4 Misi untuk Membuka</span>
+                    </>
+                  ) : isDone ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 text-amber-300" />
+                      <span>Lihat Pembahasan & Kerjakan Ulang</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play className="w-4 h-4 fill-white" />
+                      <span>Mulai Uji Pemahaman {currentUser.isGroup ? 'Kelompok' : ''}</span>
+                    </>
+                  )}
+                </button>
+
+                {isDone && submission && (
+                  <button
+                    type="button"
+                    onClick={() => setSubmissionToDelete(submission)}
+                    className="p-3 rounded-2xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors cursor-pointer shrink-0 shadow-2xs"
+                    title="Hapus Nilai Uji Ini & Mulai Baru"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      )}
+
+      {/* Delete Submission Confirmation Modal for Student */}
+      {submissionToDelete && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-md rounded-3xl p-6 shadow-2xl space-y-4 text-left animate-in fade-in zoom-in-95">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-slate-900">
+                Hapus Hasil Uji Pemahaman Ini?
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Kamu akan menghapus hasil pengerjaan kuis{' '}
+                <strong className="text-slate-900 font-semibold">"{submissionToDelete.quizTitle}"</strong> (Skor: {submissionToDelete.score}/100, Predikat: {submissionToDelete.predicate}).
+              </p>
+              <p className="text-[11px] text-amber-800 bg-amber-50 p-2.5 rounded-xl border border-amber-200 mt-2 font-medium">
+                💡 Setelah dihapus, kamu dapat mengerjakan kembali soal dari awal dengan status skor baru.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setSubmissionToDelete(null)}
+                className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={async () => {
+                  if (!submissionToDelete) return;
+                  setIsDeleting(true);
+                  try {
+                    await dbDeleteQuizSubmission(submissionToDelete.id);
+                    if (onDeleteQuizSubmission) {
+                      onDeleteQuizSubmission(submissionToDelete.id);
+                    }
+                    toast.success('Hasil Uji Pemahaman Dihapus', 'Data nilai telah dihapus. Kamu dapat mengulang kuis kapan saja.');
+                    setSubmissionToDelete(null);
+                  } catch (e: any) {
+                    toast.error('Gagal Menghapus Nilai', e?.message || 'Terjadi kesalahan.');
+                  } finally {
+                    setIsDeleting(false);
+                  }
+                }}
+                className="px-4.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Menghapus...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Ya, Hapus Nilai</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quiz Player Modal when active (Split Screen View) */}
+      {activeQuizToPlay && (
+        <ConceptQuizPlayer
+          quiz={activeQuizToPlay}
+          currentUser={currentUser}
+          onClose={() => setActiveQuizToPlay(null)}
+          onSubmitResult={(sub) => {
+            onSubmitQuizResult(sub);
+          }}
+          previousSubmission={mySubmissions.find((s) => s.quizId === activeQuizToPlay.id)}
+        />
+      )}
+    </div>
+  );
+};

@@ -1,0 +1,41 @@
+[
+  {
+    "id": "quiz-kpk-fpb",
+    "title": "Uji Pemahaman Berpikir Kritis: Penalaran KPK & FPB Siklus Nyata",
+    "subject": "Matematika",
+    "grade": "Kelas V",
+    "phase": "Fase C",
+    "topic": "KPK & FPB",
+    "description": "Asesmen berpikir kritis mengukur kemampuan bernalar matematis, menganalisis pola interval waktu, dan merancang pembagian merata objek sehari-hari.",
+    "durationMinutes": 10,
+    "passingScore": 75,
+    "isPublished": true,
+    "questions": []
+  },
+  {
+    "id": "quiz-ipas-ekosistem",
+    "title": "Uji Pemahaman Berpikir Kritis: Dinamika Rantai Makanan & Ekosistem",
+    "subject": "IPAS",
+    "grade": "Kelas V",
+    "phase": "Fase C",
+    "topic": "Ekosistem & Rantai Makanan",
+    "description": "Evaluasi pemahaman konsep aliran energi, peran dekomposer, dan dampak ketidakseimbangan jaring makanan di lingkungan sekitar.",
+    "durationMinutes": 15,
+    "passingScore": 75,
+    "isPublished": true,
+    "questions": []
+  },
+  {
+    "id": "quiz-indo-deskripsi",
+    "title": "Uji Pemahaman Berpikir Kritis: Analisis Teks Deskripsi & Bukti Visual",
+    "subject": "Bahasa Indonesia",
+    "grade": "Kelas V",
+    "phase": "Fase C",
+    "topic": "Teks Deskripsi & Observasi",
+    "description": "Menilai keterampilan literasi membaca kritis, verifikasi keakuratan kalimat deskriptif dengan bukti citra nyata.",
+    "durationMinutes": 12,
+    "passingScore": 75,
+    "isPublished": true,
+    "questions": []
+  }
+]
