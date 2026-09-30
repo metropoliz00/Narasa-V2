@@ -24,7 +24,10 @@ import {
   Eye,
   EyeOff,
   KeyRound,
-  Save
+  Save,
+  Users,
+  Award,
+  BookOpen
 } from 'lucide-react';
 
 interface UserAccountModalProps {
@@ -33,6 +36,7 @@ interface UserAccountModalProps {
   onSave: (userData: Omit<UserProfile, 'id'> & { id?: string }) => void;
   editingUser?: UserProfile | null;
   defaultRole?: UserRole;
+  defaultIsGroup?: boolean;
   currentUser?: UserProfile;
 }
 
@@ -42,9 +46,11 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   onSave,
   editingUser,
   defaultRole = 'student',
+  defaultIsGroup = false,
   currentUser
 }) => {
   const [role, setRole] = useState<UserRole>(defaultRole);
+  const [isGroup, setIsGroup] = useState<boolean>(defaultIsGroup);
   const [gender, setGender] = useState<UserGender>('male');
   const [name, setName] = useState('');
   const [schoolName, setSchoolName] = useState(currentUser?.schoolName || 'UPT SD Negeri Remen 2');
@@ -55,6 +61,11 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
   const [avatar, setAvatar] = useState(getDefaultAvatar(defaultRole, 'male'));
+
+  // Group specific fields
+  const [groupMembersText, setGroupMembersText] = useState('');
+  const [groupLeader, setGroupLeader] = useState('');
+  const [groupMotto, setGroupMotto] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -75,13 +86,15 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
     setPhotoInfo(null);
     if (editingUser) {
       const userGender: UserGender = editingUser.gender || 'male';
+      const userIsGroup = Boolean(editingUser.isGroup || (editingUser.groupMembers && editingUser.groupMembers.length > 0));
       setRole(editingUser.role);
+      setIsGroup(userIsGroup);
       setGender(userGender);
       setName(editingUser.name);
-      setSchoolName(editingUser.schoolName);
+      setSchoolName(editingUser.schoolName || 'UPT SD Negeri Remen 2');
       setSchoolId(editingUser.schoolId || 'SDN01');
-      setClassName(editingUser.className);
-      setClassId(editingUser.classId || 'V-A');
+      setClassName(editingUser.className || 'Kelas V');
+      setClassId(editingUser.classId || 'V');
       setNisnNip(editingUser.nisnNip || '');
       setPhone(editingUser.phone || '');
       setStatus(editingUser.status || 'active');
@@ -90,10 +103,15 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       setAvatar(isCustomBase64 ? editingUser.avatar : defaultAv);
       setUsername(editingUser.username || '');
       setPassword(editingUser.password || '123456');
+      setGroupMembersText((editingUser.groupMembers || []).join(', '));
+      setGroupLeader(editingUser.groupLeader || '');
+      setGroupMotto(editingUser.groupMotto || '');
     } else {
       const initialRole = defaultRole;
+      const initialIsGroup = Boolean(defaultIsGroup);
       const initialGender: UserGender = 'male';
       setRole(initialRole);
+      setIsGroup(initialIsGroup);
       setGender(initialGender);
       setName('');
       if (isSchoolAdminLoggedIn && currentUser) {
@@ -105,18 +123,20 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       }
       setClassName(initialRole === 'student' ? 'Kelas V' : initialRole === 'teacher' ? 'Wali Kelas V' : 'Admin Sekolah');
       setClassId(initialRole === 'student' ? 'V' : initialRole === 'teacher' ? 'V' : 'ALL');
-      setNisnNip('');
+      setNisnNip(initialIsGroup ? 'KEL-V-01' : '');
       setPhone('');
       setStatus('active');
       setAvatar(getDefaultAvatar(initialRole, initialGender));
       setUsername('');
       setPassword('123456');
+      setGroupMembersText('');
+      setGroupLeader('');
+      setGroupMotto('');
     }
-  }, [editingUser, defaultRole, isOpen, currentUser, isSchoolAdminLoggedIn]);
+  }, [editingUser, defaultRole, defaultIsGroup, isOpen, currentUser, isSchoolAdminLoggedIn]);
 
   const handleGenderChange = (newGender: UserGender) => {
     setGender(newGender);
-    // Langsung sesuaikan secara default avatarnya
     setAvatar(getDefaultAvatar(role, newGender));
     setPhotoInfo(null);
     setFileError(null);
@@ -125,17 +145,19 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
 
   const handleRoleChange = (newRole: UserRole) => {
     setRole(newRole);
-    // Langsung sesuaikan secara default avatarnya
+    if (newRole !== 'student') {
+      setIsGroup(false);
+    }
     setAvatar(getDefaultAvatar(newRole, gender));
     setPhotoInfo(null);
     setFileError(null);
     if (fileInputRef.current) fileInputRef.current.value = '';
     if (!editingUser) {
       if (newRole === 'student') {
-        setClassName('Kelas V-A');
-        setClassId('V-A');
+        setClassName('Kelas V');
+        setClassId('V');
       } else if (newRole === 'teacher') {
-        const cId = classId || 'V-A';
+        const cId = classId || 'V';
         const clean = cId.replace(/^(guru\s*kelas|kelas|guru|wali)\s*/gi, '').trim();
         setClassName(clean ? `Guru Kelas ${clean}` : 'Guru Kelas');
         setClassId(cId);
@@ -242,6 +264,15 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       }
     }
 
+    const parsedGroupMembers = isGroup && groupMembersText
+      ? groupMembersText
+          .split(/[,;\n]/)
+          .map((m) => m.trim())
+          .filter(Boolean)
+      : undefined;
+
+    const finalNisnNip = nisnNip.trim() || (isGroup ? `KEL-${finalClassId}-${Date.now().toString().slice(-4)}` : undefined);
+
     onSave({
       id: editingUser?.id,
       name: name.trim(),
@@ -254,11 +285,16 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
       classId: finalClassId,
       email: editingUser?.email || `${name.toLowerCase().replace(/[^a-z0-9]/g, '')}@narasa.id`,
       status,
-      nisnNip: nisnNip.trim(),
+      nisnNip: finalNisnNip,
       phone: phone.trim(),
       username: username.trim() || undefined,
       password: password.trim() || undefined,
-      joinedDate: editingUser?.joinedDate || 'Hari ini'
+      isGroup: isGroup,
+      groupId: editingUser?.groupId || (isGroup ? `group-${Date.now()}` : undefined),
+      groupMembers: parsedGroupMembers,
+      groupLeader: isGroup ? groupLeader.trim() || (parsedGroupMembers && parsedGroupMembers[0]) || undefined : undefined,
+      groupMotto: isGroup ? groupMotto.trim() || undefined : undefined,
+      joinedDate: editingUser?.joinedDate || 'September 2026'
     });
     onClose();
   };
@@ -272,17 +308,41 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
           <div className="flex items-center gap-2.5">
             <div className={`p-2 rounded-xl text-white ${
-              role === 'student' ? 'bg-[#4F8EF7]' : role === 'teacher' ? 'bg-[#7C5CFC]' : 'bg-emerald-600'
+              role === 'student'
+                ? isGroup
+                  ? 'bg-amber-500'
+                  : 'bg-[#4F8EF7]'
+                : role === 'teacher'
+                ? 'bg-[#7C5CFC]'
+                : 'bg-emerald-600'
             }`}>
-              {role === 'student' ? <User className="w-5 h-5" /> : role === 'teacher' ? <GraduationCap className="w-5 h-5" /> : <ShieldCheck className="w-5 h-5" />}
+              {role === 'student' ? (
+                isGroup ? <Users className="w-5 h-5" /> : <User className="w-5 h-5" />
+              ) : role === 'teacher' ? (
+                <GraduationCap className="w-5 h-5" />
+              ) : (
+                <ShieldCheck className="w-5 h-5" />
+              )}
             </div>
             <div>
               <h3 className="text-base font-bold text-[#25324B] font-display">
-                {isSelf ? 'Atur Profil Saya' : editingUser ? 'Edit Data Akun' : 'Tambah Akun Baru'}
+                {isSelf
+                  ? 'Atur Profil Saya'
+                  : editingUser
+                  ? isGroup
+                    ? 'Edit Akun Kelompok Belajar'
+                    : 'Edit Data Akun'
+                  : isGroup
+                  ? 'Tambah Akun Kelompok Belajar'
+                  : role === 'student'
+                  ? 'Tambah Akun Murid (Individu)'
+                  : 'Tambah Akun Baru'}
               </h3>
               <p className="text-xs text-slate-500">
-                {isSelf 
+                {isSelf
                   ? 'Perbarui foto profil, nama, username, dan kata sandi Anda'
+                  : isGroup
+                  ? 'Kelola data kelompok, daftar anggota, ketua, dan kredensial login tim'
                   : 'Kelola kredensial & hak akses sesuai ID Sekolah & ID Kelas'}
               </p>
             </div>
@@ -302,7 +362,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             <div className="flex items-center justify-between">
               <label className="text-[11px] font-bold text-[#25324B] uppercase tracking-wider flex items-center gap-1.5">
                 <Camera className="w-3.5 h-3.5 text-blue-600" />
-                <span>Foto Profil Akun</span>
+                <span>{isGroup ? 'Avatar / Logo Kelompok' : 'Foto Profil Akun'}</span>
               </label>
               <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
                 Maksimal 500 KB
@@ -399,7 +459,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             )}
           </div>
 
-          {/* Peran & Jenis Kelamin */}
+          {/* Role & Account Type Selector */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {!isSelf ? (
               <div className="space-y-1">
@@ -412,49 +472,102 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   onChange={(e) => handleRoleChange(e.target.value as UserRole)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-semibold text-xs text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7] outline-none"
                 >
-                  <option value="student">🎓 Murid</option>
-                  <option value="teacher">🧑‍🏫 Guru</option>
+                  <option value="student">🎓 Murid & Kelompok</option>
+                  <option value="teacher">🧑‍🏫 Guru Pengampu</option>
                   <option value="school_admin">🏫 Admin Sekolah</option>
                   {!isSchoolAdminLoggedIn && <option value="central_admin">⚙️ Admin Pusat</option>}
                 </select>
               </div>
             ) : null}
 
-            <div className={`space-y-1 ${isSelf ? 'sm:col-span-2' : ''}`}>
-              <label className="text-[11px] font-bold text-[#25324B] uppercase block">
-                Jenis Kelamin <span className="text-rose-500">*</span>
-              </label>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleGenderChange('male')}
-                  className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    gender === 'male'
-                      ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-2xs font-extrabold'
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span>👦 Laki-laki (L)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleGenderChange('female')}
-                  className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                    gender === 'female'
-                      ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-2xs font-extrabold'
-                      : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
-                  }`}
-                >
-                  <span>👧 Perempuan (P)</span>
-                </button>
+            {/* Student Account Type Switcher: Individu vs Kelompok */}
+            {role === 'student' && !isSelf && (
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-[#25324B] uppercase block">
+                  Tipe Akun Siswa <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGroup(false);
+                      if (!editingUser) {
+                        setAvatar(getDefaultAvatar('student', gender));
+                        setNisnNip('');
+                      }
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      !isGroup
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-2xs font-extrabold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>👤 Murid (Individu)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsGroup(true);
+                      if (!editingUser) {
+                        setNisnNip(`KEL-${classId}-01`);
+                      }
+                    }}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isGroup
+                        ? 'bg-amber-50 border-amber-500 text-amber-800 shadow-2xs font-extrabold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>👥 Kelompok Belajar</span>
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* Gender selector for individual students / teachers */}
+            {(!isGroup || role !== 'student') && (
+              <div className={`space-y-1 ${isSelf ? 'sm:col-span-2' : ''}`}>
+                <label className="text-[11px] font-bold text-[#25324B] uppercase block">
+                  Jenis Kelamin <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleGenderChange('male')}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      gender === 'male'
+                        ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-2xs font-extrabold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>👦 Laki-laki (L)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleGenderChange('female')}
+                    className={`py-2 px-2.5 rounded-xl border text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      gender === 'female'
+                        ? 'bg-rose-50 border-rose-400 text-rose-700 shadow-2xs font-extrabold'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span>👧 Perempuan (P)</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Full Name */}
+          {/* Name / Group Name */}
           <div className="space-y-1">
             <label className="text-[11px] font-bold text-[#25324B] uppercase block">
-              Nama Lengkap {role === 'teacher' && '(Sertakan Gelar)'} <span className="text-rose-500">*</span>
+              {isGroup
+                ? 'Nama Kelompok Belajar'
+                : role === 'teacher'
+                ? 'Nama Lengkap Guru (Sertakan Gelar)'
+                : 'Nama Lengkap Murid'} <span className="text-rose-500">*</span>
             </label>
             <input
               type="text"
@@ -463,7 +576,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
               onChange={(e) => {
                 const val = e.target.value;
                 setName(val);
-                if (!editingUser && !photoInfo) {
+                if (!isGroup && !editingUser && !photoInfo) {
                   const femaleKeywords = ['siti', 'nabila', 'ratna', 'rahma', 'zahra', 'putri', 'nurul', 'dewi', 'ibu', 'ani', 'rina', 'lia', 'ayu', 'fatimah', 'aisyah', 'anisa', 'fitri', 'wulan'];
                   const maleKeywords = ['adit', 'budi', 'rizki', 'ahmad', 'fajar', 'pak', 'hendra', 'dedy', 'irfan', 'dani', 'agus', 'bayu', 'dimas', 'taufik', 'arif'];
                   const words = val.toLowerCase().split(/\s+/);
@@ -476,23 +589,81 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                   }
                 }
               }}
-              placeholder="Masukkan Nama Lengkap"
+              placeholder={
+                isGroup
+                  ? 'Contoh: Kelompok 1 - Garuda Muda'
+                  : role === 'teacher'
+                  ? 'Contoh: Ibu Rina Suryani, S.Pd.'
+                  : 'Contoh: Adit Pratama'
+              }
               className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7] outline-none"
             />
           </div>
 
-          {/* NISN / NIP & Status */}
+          {/* Group Specific Fields */}
+          {isGroup && (
+            <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-3">
+              <div className="flex items-center gap-1.5 text-amber-800 font-bold text-xs">
+                <Users className="w-4 h-4 text-amber-600" />
+                <span>Detail Anggota & Struktur Kelompok</span>
+              </div>
+
+              {/* Members List */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-700 block">
+                  Daftar Nama Anggota Kelompok (Pisahkan dengan koma atau baris baru) <span className="text-rose-500">*</span>
+                </label>
+                <textarea
+                  rows={2}
+                  value={groupMembersText}
+                  onChange={(e) => setGroupMembersText(e.target.value)}
+                  placeholder="Contoh: Adit Pratama, Budi Santoso, Citra Dewi, Dimas Arya"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 outline-none"
+                />
+              </div>
+
+              {/* Leader and Motto */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Ketua Kelompok
+                  </label>
+                  <input
+                    type="text"
+                    value={groupLeader}
+                    onChange={(e) => setGroupLeader(e.target.value)}
+                    placeholder="Nama Ketua Kelompok"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 outline-none"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-slate-700 block">
+                    Motto / Semboyan Kelompok
+                  </label>
+                  <input
+                    type="text"
+                    value={groupMotto}
+                    onChange={(e) => setGroupMotto(e.target.value)}
+                    placeholder="Contoh: Teliti, Tangkas, Cermat"
+                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 text-xs focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* NISN / NIP / ID Kelompok & Status */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-[#25324B] uppercase block">
-                {role === 'student' ? 'NISN Murid' : 'NIP / NUPTK'}
+                {isGroup ? 'Kode / ID Kelompok' : role === 'student' ? 'NISN Murid' : 'NIP / NUPTK'}
               </label>
               <input
                 type="text"
                 disabled={isSelf}
                 value={nisnNip}
                 onChange={(e) => setNisnNip(e.target.value)}
-                placeholder={role === 'student' ? 'Masukkan NISN Murid' : 'Masukkan NIP / NUPTK'}
+                placeholder={isGroup ? 'Contoh: KEL-V-01' : role === 'student' ? 'Masukkan NISN Murid' : 'Masukkan NIP / NUPTK'}
                 className={`w-full px-3.5 py-2.5 rounded-xl border border-slate-200 font-medium text-slate-800 outline-none ${
                   isSelf ? 'bg-slate-100 text-slate-500 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7]'
                 }`}
@@ -530,14 +701,14 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-[#25324B] uppercase block">
-                {role === 'student' ? 'Username Login (NISN)' : 'Username Akun'} <span className="text-rose-500">*</span>
+                {isGroup ? 'Username Kelompok' : role === 'student' ? 'Username Login (NISN)' : 'Username Akun'} <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder={role === 'student' ? 'Masukkan NISN / username' : 'Masukkan username'}
+                placeholder={isGroup ? 'Contoh: kelompok1' : role === 'student' ? 'Masukkan NISN / username' : 'Masukkan username'}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white font-medium text-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7] outline-none"
               />
             </div>
@@ -545,7 +716,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-[#25324B] uppercase block flex items-center gap-1">
                 <KeyRound className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-                <span>Kata Sandi Baru (Password)</span> <span className="text-rose-500">*</span>
+                <span>Kata Sandi (Password)</span> <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -664,7 +835,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                     type="text"
                     value={schoolName}
                     onChange={(e) => setSchoolName(e.target.value)}
-                    placeholder="Contoh: SDN 01 Nusantara / Pusat Data"
+                    placeholder="Contoh: UPT SD Negeri Remen 2"
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7] outline-none"
                   />
                 </div>
@@ -676,7 +847,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
                     type="text"
                     value={className}
                     onChange={(e) => setClassName(e.target.value)}
-                    placeholder="Contoh: Kelas V-A / Admin Pusat"
+                    placeholder="Contoh: Kelas V / Admin Sekolah"
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 bg-white font-semibold text-slate-800 text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-[#4F8EF7] outline-none"
                   />
                 </div>
@@ -703,7 +874,7 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors"
+              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Batal
             </button>

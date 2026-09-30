@@ -84,7 +84,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setActiveTab(initialTab);
     }
   }, [initialTab]);
-  const [accountFilterRole, setAccountFilterRole] = useState<'all' | UserRole>('all');
+  const [accountCategory, setAccountCategory] = useState<'all' | 'student' | 'group' | 'teacher' | 'school_admin' | 'central_admin'>('student');
+  const [defaultIsGroupForNew, setDefaultIsGroupForNew] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [isSavingAccounts, setIsSavingAccounts] = useState(false);
@@ -583,29 +584,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       })
     : users;
 
-  // Filter users
+  const individualStudents = scopedUsers.filter((u) => u.role === 'student' && !u.isGroup && (!u.groupMembers || u.groupMembers.length === 0));
+  const groupAccounts = scopedUsers.filter((u) => Boolean(u.isGroup || (u.groupMembers && u.groupMembers.length > 0)));
+  const teachersList = scopedUsers.filter((u) => u.role === 'teacher');
+  const schoolAdminsList = scopedUsers.filter((u) => u.role === 'school_admin');
+  const centralAdminsList = scopedUsers.filter((u) => u.role === 'central_admin' || u.role === 'admin');
+
+  const individualStudentsCount = individualStudents.length;
+  const groupAccountsCount = groupAccounts.length;
+  const teachersCount = teachersList.length;
+  const schoolAdminsCount = schoolAdminsList.length;
+  const centralAdminsCount = centralAdminsList.length;
+  const adminsCount = schoolAdminsCount + centralAdminsCount;
+  const activeCount = scopedUsers.filter((u) => (u.status || 'active') === 'active').length;
+
+  // Filter users based on accountCategory
   const filteredUsers = scopedUsers.filter((u) => {
-    const matchesRole =
-      accountFilterRole === 'all' ||
-      u.role === accountFilterRole ||
-      (accountFilterRole === 'central_admin' && u.role === 'admin') ||
-      (accountFilterRole === 'admin' && (u.role === 'admin' || u.role === 'central_admin'));
+    const isGroupUser = Boolean(u.isGroup || (u.groupMembers && u.groupMembers.length > 0));
+    let matchesCategory = true;
+    if (accountCategory === 'student') {
+      matchesCategory = u.role === 'student' && !isGroupUser;
+    } else if (accountCategory === 'group') {
+      matchesCategory = isGroupUser;
+    } else if (accountCategory === 'teacher') {
+      matchesCategory = u.role === 'teacher';
+    } else if (accountCategory === 'school_admin') {
+      matchesCategory = u.role === 'school_admin';
+    } else if (accountCategory === 'central_admin') {
+      matchesCategory = u.role === 'central_admin' || u.role === 'admin';
+    }
+
     const matchesStatus = statusFilter === 'all' || (u.status || 'active') === statusFilter;
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       u.name.toLowerCase().includes(q) ||
       u.className.toLowerCase().includes(q) ||
       u.schoolName.toLowerCase().includes(q) ||
+      (u.groupLeader && u.groupLeader.toLowerCase().includes(q)) ||
+      (u.groupMembers && u.groupMembers.some((m) => m.toLowerCase().includes(q))) ||
       (u.nisnNip && u.nisnNip.toLowerCase().includes(q));
-    return matchesRole && matchesStatus && matchesSearch;
-  });
 
-  const studentsCount = scopedUsers.filter((u) => u.role === 'student').length;
-  const teachersCount = scopedUsers.filter((u) => u.role === 'teacher').length;
-  const schoolAdminsCount = scopedUsers.filter((u) => u.role === 'school_admin').length;
-  const centralAdminsCount = scopedUsers.filter((u) => u.role === 'central_admin' || u.role === 'admin').length;
-  const adminsCount = schoolAdminsCount + centralAdminsCount;
-  const activeCount = scopedUsers.filter((u) => (u.status || 'active') === 'active').length;
+    return matchesCategory && matchesStatus && matchesSearch;
+  });
 
   // Real data calculations for partner schools and Dinas Pendidikan
   const knownSchoolMeta: Record<string, { npsn: string; category: string }> = {
@@ -821,14 +841,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  const handleOpenCreate = (role: UserRole = 'student') => {
+  const handleOpenCreate = (role: UserRole = 'student', isGroup: boolean = false) => {
     setEditingUser(null);
     setDefaultRoleForNew(role);
+    setDefaultIsGroupForNew(isGroup);
     setIsAccountModalOpen(true);
   };
 
   const handleOpenEdit = (user: UserProfile) => {
     setEditingUser(user);
+    setDefaultRoleForNew(user.role);
+    setDefaultIsGroupForNew(Boolean(user.isGroup || (user.groupMembers && user.groupMembers.length > 0)));
     setIsAccountModalOpen(true);
   };
 
@@ -949,11 +972,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         <div className="relative z-10 flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <button
-            onClick={() => handleOpenCreate('student')}
-            className="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl bg-[#4F8EF7] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
+            onClick={() => handleOpenCreate('student', false)}
+            className="px-3.5 py-2.5 rounded-xl bg-[#4F8EF7] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-blue-500/20 active:scale-95 transition-all cursor-pointer"
           >
-            <UserPlus className="w-4 h-4" />
-            <span>+ Tambah Akun</span>
+            <User className="w-4 h-4" />
+            <span>+ Akun Murid</span>
+          </button>
+          <button
+            onClick={() => handleOpenCreate('student', true)}
+            className="px-3.5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <Users className="w-4 h-4" />
+            <span>+ Akun Kelompok</span>
+          </button>
+          <button
+            onClick={() => handleOpenCreate('teacher', false)}
+            className="px-3.5 py-2.5 rounded-xl bg-[#7C5CFC] hover:bg-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-purple-500/20 active:scale-95 transition-all cursor-pointer"
+          >
+            <GraduationCap className="w-4 h-4" />
+            <span>+ Guru / Admin</span>
           </button>
         </div>
       </div>
@@ -1015,100 +1052,210 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 1. MANAJEMEN AKUN TAB */}
       {activeTab === 'accounts' && (
         <div className="space-y-6">
-          {/* Quick Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+          {/* Quick Metrics (Cleanly separated for Murid & Kelompok) */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+            <div
+              onClick={() => setAccountCategory('all')}
+              className={`p-4 rounded-3xl border transition-all cursor-pointer ${
+                accountCategory === 'all'
+                  ? 'bg-blue-50/60 border-[#4F8EF7] shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+              }`}
+            >
               <span className="text-[11px] text-slate-400 font-semibold block">Total Pengguna</span>
-              <span className="text-2xl font-bold font-display text-[#25324B]">{users.length} Akun</span>
-              <span className="text-[10px] text-emerald-600 block mt-1 font-semibold">{activeCount} Akun Aktif</span>
+              <span className="text-xl sm:text-2xl font-bold font-display text-[#25324B]">{scopedUsers.length}</span>
+              <span className="text-[10px] text-emerald-600 block mt-0.5 font-semibold">{activeCount} Akun Aktif</span>
             </div>
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[11px] text-slate-400 font-semibold block">Akun Murid SD</span>
-              <span className="text-2xl font-bold font-display text-blue-600">{studentsCount} Murid</span>
-              <span className="text-[10px] text-slate-400 block mt-1 truncate">{currentUser?.schoolName || 'UPT SD Negeri Remen 2'}</span>
+
+            <div
+              onClick={() => setAccountCategory('student')}
+              className={`p-4 rounded-3xl border transition-all cursor-pointer ${
+                accountCategory === 'student'
+                  ? 'bg-blue-50/60 border-blue-500 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+              }`}
+            >
+              <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
+                <User className="w-3.5 h-3.5 text-blue-500" />
+                <span>Akun Murid (Individu)</span>
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-display text-blue-600">{individualStudentsCount}</span>
+              <span className="text-[10px] text-blue-600/80 block mt-0.5 font-semibold">Siswa Perorangan</span>
             </div>
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[11px] text-slate-400 font-semibold block">Akun Guru</span>
-              <span className="text-2xl font-bold font-display text-purple-600">{teachersCount} Guru</span>
-              <span className="text-[10px] text-slate-400 block mt-1">Wali & Mapel</span>
+
+            <div
+              onClick={() => setAccountCategory('group')}
+              className={`p-4 rounded-3xl border transition-all cursor-pointer ${
+                accountCategory === 'group'
+                  ? 'bg-amber-50/60 border-amber-500 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+              }`}
+            >
+              <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-amber-500" />
+                <span>Akun Kelompok</span>
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-display text-amber-700">{groupAccountsCount}</span>
+              <span className="text-[10px] text-amber-700/80 block mt-0.5 font-semibold">Kelompok Belajar</span>
             </div>
-            <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
-              <span className="text-[11px] text-slate-400 font-semibold block">Administrator</span>
-              <span className="text-2xl font-bold font-display text-emerald-600">{adminsCount} Admin</span>
-              <span className="text-[10px] text-emerald-600 font-semibold block mt-1">Kurikulum & IT</span>
+
+            <div
+              onClick={() => setAccountCategory('teacher')}
+              className={`p-4 rounded-3xl border transition-all cursor-pointer ${
+                accountCategory === 'teacher'
+                  ? 'bg-purple-50/60 border-purple-500 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+              }`}
+            >
+              <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
+                <GraduationCap className="w-3.5 h-3.5 text-purple-500" />
+                <span>Akun Guru</span>
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-display text-purple-600">{teachersCount}</span>
+              <span className="text-[10px] text-slate-400 block mt-0.5">Wali & Guru Mapel</span>
+            </div>
+
+            <div
+              onClick={() => setAccountCategory('school_admin')}
+              className={`p-4 rounded-3xl border transition-all cursor-pointer col-span-2 sm:col-span-1 ${
+                accountCategory === 'school_admin' || accountCategory === 'central_admin'
+                  ? 'bg-emerald-50/60 border-emerald-500 shadow-sm'
+                  : 'bg-white border-slate-200 hover:border-slate-300 shadow-xs'
+              }`}
+            >
+              <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Administrator</span>
+              </span>
+              <span className="text-xl sm:text-2xl font-bold font-display text-emerald-600">{adminsCount}</span>
+              <span className="text-[10px] text-emerald-600 font-semibold block mt-0.5">Sekolah & Pusat</span>
             </div>
           </div>
 
           {/* Account Filter & Control Bar */}
           <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-              {/* Role filter buttons */}
-              <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-2xl overflow-x-auto">
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              {/* Category sub-tabs */}
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-2xl overflow-x-auto no-scrollbar">
                 <button
-                  onClick={() => setAccountFilterRole('all')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    accountFilterRole === 'all'
-                      ? 'bg-white text-slate-900 shadow-xs'
+                  onClick={() => setAccountCategory('student')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'student'
+                      ? 'bg-white text-blue-600 shadow-xs font-extrabold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Semua ({users.length})
+                  <User className="w-3.5 h-3.5" />
+                  <span>Akun Murid ({individualStudentsCount})</span>
                 </button>
                 <button
-                  onClick={() => setAccountFilterRole('student')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    accountFilterRole === 'student'
-                      ? 'bg-white text-blue-600 shadow-xs'
+                  onClick={() => setAccountCategory('group')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'group'
+                      ? 'bg-white text-amber-700 shadow-xs font-extrabold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Murid ({studentsCount})
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Akun Kelompok ({groupAccountsCount})</span>
                 </button>
                 <button
-                  onClick={() => setAccountFilterRole('teacher')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    accountFilterRole === 'teacher'
-                      ? 'bg-white text-purple-600 shadow-xs'
+                  onClick={() => setAccountCategory('teacher')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'teacher'
+                      ? 'bg-white text-purple-600 shadow-xs font-extrabold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Guru ({teachersCount})
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  <span>Guru ({teachersCount})</span>
                 </button>
                 <button
-                  onClick={() => setAccountFilterRole('school_admin')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    accountFilterRole === 'school_admin'
-                      ? 'bg-white text-indigo-700 shadow-xs'
+                  onClick={() => setAccountCategory('school_admin')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'school_admin'
+                      ? 'bg-white text-indigo-700 shadow-xs font-extrabold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Admin Sekolah ({schoolAdminsCount})
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Admin Sekolah ({schoolAdminsCount})</span>
                 </button>
                 <button
-                  onClick={() => setAccountFilterRole('central_admin')}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                    accountFilterRole === 'central_admin'
-                      ? 'bg-white text-emerald-700 shadow-xs'
+                  onClick={() => setAccountCategory('central_admin')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'central_admin'
+                      ? 'bg-white text-emerald-700 shadow-xs font-extrabold'
                       : 'text-slate-600 hover:text-slate-900'
                   }`}
                 >
-                  Admin Pusat ({centralAdminsCount})
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>Admin Pusat ({centralAdminsCount})</span>
+                </button>
+                <button
+                  onClick={() => setAccountCategory('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer ${
+                    accountCategory === 'all'
+                      ? 'bg-white text-slate-900 shadow-xs font-extrabold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <span>Semua ({scopedUsers.length})</span>
                 </button>
               </div>
 
               {/* Status filter & Add buttons */}
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2.5 flex-wrap">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value as any)}
-                  className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 outline-none bg-white"
+                  className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-700 outline-none bg-white cursor-pointer"
                 >
                   <option value="all">Semua Status</option>
                   <option value="active">🟢 Status Aktif</option>
                   <option value="inactive">🔴 Status Nonaktif</option>
                 </select>
 
-                {/* Excel Template & Bulk Import/Export & Save Accounts (Icon-only buttons) */}
+                {/* Direct Add Button contextual to active sub-tab */}
+                {accountCategory === 'group' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCreate('student', true)}
+                    className="px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <Users className="w-3.5 h-3.5" />
+                    <span>+ Akun Kelompok</span>
+                  </button>
+                ) : accountCategory === 'teacher' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCreate('teacher', false)}
+                    className="px-3 py-2 rounded-xl bg-[#7C5CFC] hover:bg-purple-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <GraduationCap className="w-3.5 h-3.5" />
+                    <span>+ Akun Guru</span>
+                  </button>
+                ) : accountCategory === 'school_admin' || accountCategory === 'central_admin' ? (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCreate(accountCategory === 'central_admin' ? 'central_admin' : 'school_admin', false)}
+                    className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>+ Administrator</span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleOpenCreate('student', false)}
+                    className="px-3 py-2 rounded-xl bg-[#4F8EF7] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-all active:scale-95 cursor-pointer"
+                  >
+                    <User className="w-3.5 h-3.5" />
+                    <span>+ Akun Murid</span>
+                  </button>
+                )}
+
+                {/* Excel Template & Bulk Import/Export & Save Accounts */}
                 <div className="flex items-center gap-1.5 border-l border-slate-200 pl-2.5">
                   <button
                     type="button"
@@ -1171,7 +1318,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari berdasarkan nama lengkap, NISN / NIP, sekolah, atau kelas..."
+                placeholder={
+                  accountCategory === 'student'
+                    ? "Cari akun murid berdasarkan nama lengkap, NISN, atau kelas..."
+                    : accountCategory === 'group'
+                    ? "Cari akun kelompok berdasarkan nama tim, nama anggota, atau ketua..."
+                    : "Cari berdasarkan nama, NISN / NIP, sekolah, anggota, atau kelas..."
+                }
                 className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-800 placeholder-slate-400 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all"
               />
             </div>
@@ -1182,25 +1335,383 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
                 <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 text-[11px] font-bold uppercase tracking-wider">
-                  <tr>
-                    <th className="py-3.5 px-4 sm:px-6">Pengguna & Identitas</th>
-                    <th className="py-3.5 px-4">Peran</th>
-                    <th className="py-3.5 px-4">Sekolah & Kelas/Bidang</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Manajemen</th>
-                  </tr>
+                  {accountCategory === 'group' ? (
+                    <tr>
+                      <th className="py-3.5 px-4 sm:px-6">Kelompok Belajar</th>
+                      <th className="py-3.5 px-4">Anggota Kelompok</th>
+                      <th className="py-3.5 px-4">Ketua & Semboyan</th>
+                      <th className="py-3.5 px-4">Sekolah & Kelas</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Manajemen</th>
+                    </tr>
+                  ) : accountCategory === 'student' ? (
+                    <tr>
+                      <th className="py-3.5 px-4 sm:px-6">Murid & Identitas</th>
+                      <th className="py-3.5 px-4">NISN Murid</th>
+                      <th className="py-3.5 px-4">Sekolah & Kelas</th>
+                      <th className="py-3.5 px-4">Username & Kredensial</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Manajemen</th>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <th className="py-3.5 px-4 sm:px-6">Pengguna & Identitas</th>
+                      <th className="py-3.5 px-4">Tipe & Peran</th>
+                      <th className="py-3.5 px-4">Sekolah & Kelas/Bidang</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Manajemen</th>
+                    </tr>
+                  )}
                 </thead>
                 <tbody className="divide-y divide-slate-100 font-normal">
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-10 text-center text-slate-400 text-xs">
-                        Tidak ada akun yang sesuai dengan kriteria pencarian.
+                      <td colSpan={6} className="py-12 text-center text-slate-400 text-xs">
+                        <div className="max-w-xs mx-auto space-y-2">
+                          <p className="font-semibold text-slate-500">
+                            {accountCategory === 'group'
+                              ? 'Belum ada Akun Kelompok Belajar yang terdaftar.'
+                              : accountCategory === 'student'
+                              ? 'Belum ada Akun Murid (Individu) yang terdaftar.'
+                              : 'Tidak ada akun yang sesuai dengan kriteria pencarian.'}
+                          </p>
+                          {accountCategory === 'group' && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCreate('student', true)}
+                              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                              <Users className="w-3.5 h-3.5" />
+                              <span>+ Buat Akun Kelompok</span>
+                            </button>
+                          )}
+                          {accountCategory === 'student' && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenCreate('student', false)}
+                              className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
+                            >
+                              <User className="w-3.5 h-3.5" />
+                              <span>+ Buat Akun Murid</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     filteredUsers.map((u) => {
                       const isCurrent = u.id === currentUser.id;
                       const isActive = (u.status || 'active') === 'active';
+                      const isGroupUser = Boolean(u.isGroup || (u.groupMembers && u.groupMembers.length > 0));
+
+                      // Custom Row Render for Group Accounts
+                      if (accountCategory === 'group') {
+                        return (
+                          <tr key={u.id} className="hover:bg-amber-50/40 transition-colors">
+                            <td className="py-3.5 px-4 sm:px-6">
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEdit(u)}
+                                  className="relative group rounded-xl overflow-hidden shrink-0 border border-amber-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                                  title="Klik untuk ubah avatar / data kelompok"
+                                >
+                                  <img
+                                    src={u.avatar}
+                                    alt={u.name}
+                                    className="w-10 h-10 rounded-xl object-cover"
+                                  />
+                                  <span className="absolute inset-0 bg-slate-900/50 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                    <Camera className="w-3.5 h-3.5" />
+                                  </span>
+                                </button>
+                                <div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-[#25324B]">{u.name}</span>
+                                    {isCurrent && (
+                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
+                                        Akun Anda
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-amber-700 font-medium block">
+                                    Username: <strong className="font-mono">{u.username || u.name.toLowerCase().replace(/[^a-z0-9]/g, '')}</strong>
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 max-w-xs">
+                              {u.groupMembers && u.groupMembers.length > 0 ? (
+                                <div className="space-y-1">
+                                  <div className="flex flex-wrap gap-1">
+                                    {u.groupMembers.map((m, idx) => (
+                                      <span
+                                        key={idx}
+                                        className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white border border-amber-200 text-amber-900 shadow-2xs"
+                                      >
+                                        {m}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <span className="text-[10px] text-slate-400 block">
+                                    {u.groupMembers.length} Murid Terdaftar
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 text-xs italic">Belum ada daftar anggota</span>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="space-y-0.5">
+                                <span className="text-xs font-semibold text-slate-800 block">
+                                  Ketua: {u.groupLeader || (u.groupMembers && u.groupMembers[0]) || '-'}
+                                </span>
+                                {u.groupMotto && (
+                                  <span className="text-[11px] text-amber-700 italic block">
+                                    "{u.groupMotto}"
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="space-y-0.5">
+                                <span className="font-medium text-[#25324B] block text-xs">
+                                  {u.schoolName}
+                                </span>
+                                <span className="text-[11px] text-slate-500 block">
+                                  {u.className}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <button
+                                onClick={() => handleToggleStatus(u)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
+                                  isActive
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                                }`}
+                                title="Klik untuk ubah status akun kelompok"
+                              >
+                                {isActive ? (
+                                  <>
+                                    <CheckCircle className="w-3 h-3" /> Aktif
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-3 h-3" /> Nonaktif
+                                  </>
+                                )}
+                              </button>
+                            </td>
+
+                            <td className="py-3.5 px-4 sm:px-6 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => onSwitchUser(u)}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 text-[11px] font-bold transition-colors cursor-pointer"
+                                  title="Masuk sebagai akun kelompok ini"
+                                >
+                                  Masuk
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEdit(u)}
+                                  className="p-1.5 rounded-lg text-slate-500 hover:text-amber-700 hover:bg-amber-50 transition-colors cursor-pointer"
+                                  title="Edit Data Kelompok"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                {!isCurrent && (
+                                  deleteConfirmId === u.id ? (
+                                    <div className="inline-flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
+                                      <button
+                                        onClick={() => {
+                                          onDeleteUser(u.id);
+                                          setDeleteConfirmId(null);
+                                        }}
+                                        className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold cursor-pointer"
+                                      >
+                                        Hapus
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteConfirmId(null)}
+                                        className="px-1.5 py-0.5 text-slate-500 text-[10px] cursor-pointer"
+                                      >
+                                        Batal
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setDeleteConfirmId(u.id)}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                      title="Hapus Akun Kelompok"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      // Custom Row Render for Individual Student Accounts
+                      if (accountCategory === 'student') {
+                        return (
+                          <tr key={u.id} className="hover:bg-blue-50/30 transition-colors">
+                            <td className="py-3.5 px-4 sm:px-6">
+                              <div className="flex items-center gap-3">
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenEdit(u)}
+                                  className="relative group rounded-xl overflow-hidden shrink-0 border border-slate-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                                  title="Klik untuk ubah foto profil / data murid"
+                                >
+                                  <img
+                                    src={u.avatar}
+                                    alt={u.name}
+                                    className="w-10 h-10 rounded-xl object-cover"
+                                  />
+                                  <span className="absolute inset-0 bg-slate-900/50 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity">
+                                    <Camera className="w-3.5 h-3.5" />
+                                  </span>
+                                </button>
+                                <div>
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <span className="font-bold text-[#25324B]">{u.name}</span>
+                                    {u.gender && (
+                                      <span className={`px-1.5 py-0.2 rounded-md text-[9px] font-bold ${
+                                        u.gender === 'female'
+                                          ? 'bg-rose-50 text-rose-600 border border-rose-200'
+                                          : 'bg-blue-50 text-blue-600 border border-blue-200'
+                                      }`}>
+                                        {u.gender === 'female' ? '👧 Perempuan' : '👦 Laki-laki'}
+                                      </span>
+                                    )}
+                                    {isCurrent && (
+                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-700">
+                                        Akun Anda
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="text-[10px] text-slate-500 block">
+                                    ID Siswa: <span className="font-mono">{u.id}</span>
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4 font-mono text-xs">
+                              {u.nisnNip ? (
+                                <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">
+                                  {u.nisnNip}
+                                </span>
+                              ) : (
+                                <span className="text-slate-400 italic">-</span>
+                              )}
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="space-y-0.5">
+                                <span className="font-medium text-[#25324B] block text-xs">
+                                  {u.schoolName}
+                                </span>
+                                <span className="text-[11px] text-slate-500 block">
+                                  {u.className}
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <div className="space-y-0.5">
+                                <span className="font-mono text-xs text-slate-700 block font-semibold">
+                                  {u.username || u.name.toLowerCase().replace(/[^a-z0-9]/g, '')}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono block">
+                                  Sandi: ••••••
+                                </span>
+                              </div>
+                            </td>
+
+                            <td className="py-3.5 px-4">
+                              <button
+                                onClick={() => handleToggleStatus(u)}
+                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all ${
+                                  isActive
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100'
+                                    : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                                }`}
+                                title="Klik untuk ubah status akun"
+                              >
+                                {isActive ? (
+                                  <>
+                                    <CheckCircle className="w-3 h-3" /> Aktif
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="w-3 h-3" /> Nonaktif
+                                  </>
+                                )}
+                              </button>
+                            </td>
+
+                            <td className="py-3.5 px-4 sm:px-6 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => onSwitchUser(u)}
+                                  className="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 text-[11px] font-bold transition-colors cursor-pointer"
+                                  title="Masuk sebagai murid ini"
+                                >
+                                  Masuk
+                                </button>
+                                <button
+                                  onClick={() => handleOpenEdit(u)}
+                                  className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
+                                  title="Edit Akun Murid"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                {!isCurrent && (
+                                  deleteConfirmId === u.id ? (
+                                    <div className="inline-flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
+                                      <button
+                                        onClick={() => {
+                                          onDeleteUser(u.id);
+                                          setDeleteConfirmId(null);
+                                        }}
+                                        className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold cursor-pointer"
+                                      >
+                                        Hapus
+                                      </button>
+                                      <button
+                                        onClick={() => setDeleteConfirmId(null)}
+                                        className="px-1.5 py-0.5 text-slate-500 text-[10px] cursor-pointer"
+                                      >
+                                        Batal
+                                      </button>
+                                    </div>
+                                  ) : (
+                                    <button
+                                      onClick={() => setDeleteConfirmId(u.id)}
+                                      className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                      title="Hapus Akun Murid"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  )
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      }
+
+                      // Standard / All Views Row Render
                       return (
                         <tr key={u.id} className="hover:bg-slate-50/80 transition-colors">
                           <td className="py-3.5 px-4 sm:px-6">
@@ -1223,7 +1734,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               <div>
                                 <div className="flex items-center gap-1.5 flex-wrap">
                                   <span className="font-bold text-[#25324B]">{u.name}</span>
-                                  {u.gender && (
+                                  {u.gender && !isGroupUser && (
                                     <span className={`px-1.5 py-0.2 rounded-md text-[9px] font-bold ${
                                       u.gender === 'female'
                                         ? 'bg-rose-50 text-rose-600 border border-rose-200'
@@ -1240,7 +1751,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 </div>
                                 {u.nisnNip && (
                                   <span className="text-[10px] text-slate-500 font-mono block">
-                                    {u.role === 'student' ? 'NISN. ' : 'NIP. '}
+                                    {isGroupUser ? 'ID Tim: ' : u.role === 'student' ? 'NISN. ' : 'NIP. '}
                                     {u.nisnNip}
                                   </span>
                                 )}
@@ -1249,7 +1760,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           </td>
 
                           <td className="py-3.5 px-4">
-                            {getRoleBadge(u.role)}
+                            {isGroupUser ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
+                                <Users className="w-3 h-3 text-amber-700" /> Kelompok ({u.groupMembers?.length || 0} Murid)
+                              </span>
+                            ) : (
+                              getRoleBadge(u.role)
+                            )}
                           </td>
 
                           <td className="py-3.5 px-4">
@@ -1287,17 +1804,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                           <td className="py-3.5 px-4 sm:px-6 text-right">
                             <div className="flex items-center justify-end gap-1.5">
-
-                              {/* Edit Account */}
+                              <button
+                                onClick={() => onSwitchUser(u)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition-colors cursor-pointer"
+                                title="Beralih ke akun ini"
+                              >
+                                Masuk
+                              </button>
                               <button
                                 onClick={() => handleOpenEdit(u)}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                                className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors cursor-pointer"
                                 title="Edit Akun"
                               >
                                 <Edit className="w-4 h-4" />
                               </button>
 
-                              {/* Delete Account */}
                               {!isCurrent && (
                                 deleteConfirmId === u.id ? (
                                   <div className="inline-flex items-center gap-1 bg-rose-50 p-1 rounded-lg border border-rose-200">
@@ -1306,13 +1827,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                         onDeleteUser(u.id);
                                         setDeleteConfirmId(null);
                                       }}
-                                      className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold"
+                                      className="px-2 py-0.5 rounded bg-rose-600 text-white text-[10px] font-bold cursor-pointer"
                                     >
                                       Hapus
                                     </button>
                                     <button
                                       onClick={() => setDeleteConfirmId(null)}
-                                      className="px-1.5 py-0.5 text-slate-500 text-[10px]"
+                                      className="px-1.5 py-0.5 text-slate-500 text-[10px] cursor-pointer"
                                     >
                                       Batal
                                     </button>
@@ -1320,7 +1841,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                 ) : (
                                   <button
                                     onClick={() => setDeleteConfirmId(u.id)}
-                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                                     title="Hapus Akun"
                                   >
                                     <Trash2 className="w-4 h-4" />
@@ -1338,11 +1859,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             {/* Table Footer with Summary */}
-            <div className="bg-slate-50/90 px-5 py-3 border-t border-slate-200 flex items-center justify-between gap-3 text-xs text-slate-500">
+            <div className="bg-slate-50/90 px-5 py-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-700">
                   Menampilkan {filteredUsers.length} dari {scopedUsers.length} akun terdaftar
                 </span>
+                {accountCategory === 'student' && (
+                  <span className="text-blue-600 font-medium">({individualStudentsCount} Murid Individu)</span>
+                )}
+                {accountCategory === 'group' && (
+                  <span className="text-amber-700 font-medium">({groupAccountsCount} Kelompok Belajar)</span>
+                )}
                 {isSavedAccounts && (
                   <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 animate-in fade-in">
                     <CheckCircle2 className="w-3.5 h-3.5" /> Data Tersimpan & Sinkron
@@ -2131,6 +2658,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         onSave={handleSaveAccount}
         editingUser={editingUser}
         defaultRole={defaultRoleForNew}
+        defaultIsGroup={defaultIsGroupForNew}
         currentUser={currentUser}
       />
     </div>

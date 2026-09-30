@@ -5,6 +5,7 @@ import { toast } from './Toast';
 import {
   X,
   User,
+  Users,
   GraduationCap,
   ShieldCheck,
   Search,
@@ -22,7 +23,7 @@ interface AccountSwitcherModalProps {
   currentUser: UserProfile;
   users: UserProfile[];
   onSelectUser: (user: UserProfile) => void;
-  onOpenCreateModal: (role?: UserRole) => void;
+  onOpenCreateModal: (role?: UserRole, isGroup?: boolean) => void;
   onOpenEditModal: (user: UserProfile) => void;
   onRefreshUsers?: () => void;
 }
@@ -37,10 +38,15 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   onOpenEditModal,
   onRefreshUsers
 }) => {
-  const [activeTab, setActiveTab] = useState<'all' | UserRole>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'student' | 'group' | 'teacher' | 'admin'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
+
+  const individualStudents = users.filter((u) => u.role === 'student' && !u.isGroup && (!u.groupMembers || u.groupMembers.length === 0));
+  const groupAccounts = users.filter((u) => u.isGroup || (u.groupMembers && u.groupMembers.length > 0));
+  const teachers = users.filter((u) => u.role === 'teacher');
+  const admins = users.filter((u) => u.role === 'school_admin' || u.role === 'central_admin' || u.role === 'admin');
 
   const handleSaveAllAccounts = async () => {
     setIsSaving(true);
@@ -72,21 +78,35 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
   if (!isOpen) return null;
 
   const filteredUsers = users.filter((u) => {
-    const matchesTab = activeTab === 'all' || u.role === activeTab;
+    const isGroupUser = Boolean(u.isGroup || (u.groupMembers && u.groupMembers.length > 0));
+    let matchesTab = true;
+    if (activeTab === 'student') {
+      matchesTab = u.role === 'student' && !isGroupUser;
+    } else if (activeTab === 'group') {
+      matchesTab = isGroupUser;
+    } else if (activeTab === 'teacher') {
+      matchesTab = u.role === 'teacher';
+    } else if (activeTab === 'admin') {
+      matchesTab = u.role === 'school_admin' || u.role === 'central_admin' || u.role === 'admin';
+    }
+
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       u.name.toLowerCase().includes(q) ||
       u.email.toLowerCase().includes(q) ||
       u.className.toLowerCase().includes(q) ||
+      (u.groupLeader && u.groupLeader.toLowerCase().includes(q)) ||
+      (u.groupMembers && u.groupMembers.some(m => m.toLowerCase().includes(q))) ||
       (u.nisnNip && u.nisnNip.toLowerCase().includes(q));
+
     return matchesTab && matchesSearch;
   });
 
   const getRoleBadge = (user: UserProfile) => {
-    if (user.isGroup) {
+    if (user.isGroup || (user.groupMembers && user.groupMembers.length > 0)) {
       return (
         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-900 border border-amber-300">
-          👥 Kelompok ({user.groupMembers?.length || 0} Murid)
+          <Users className="w-3 h-3 text-amber-700" /> Kelompok ({user.groupMembers?.length || 0} Murid)
         </span>
       );
     }
@@ -94,7 +114,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
       case 'student':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-            <User className="w-3 h-3" /> Murid
+            <User className="w-3 h-3" /> Murid Individu
           </span>
         );
       case 'teacher':
@@ -131,12 +151,12 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
               Manajemen & Penggantian Akun
             </h3>
             <p className="text-xs text-slate-500">
-              Beralih profil pengguna atau kelola data akun murid, guru, dan admin
+              Beralih profil pengguna atau kelola akun murid, akun kelompok, guru, dan admin
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -165,7 +185,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
           </div>
           <button
             onClick={() => onOpenEditModal(currentUser)}
-            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-colors"
+            className="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-300 transition-colors cursor-pointer"
             title="Edit Profil Saya"
           >
             <Edit2 className="w-4 h-4" />
@@ -176,10 +196,10 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
         <div className="p-6 pb-3 space-y-3">
           <div className="flex flex-col sm:flex-row items-center gap-2 justify-between">
             {/* Role Filter Tabs */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl w-full sm:w-auto overflow-x-auto">
               <button
                 onClick={() => setActiveTab('all')}
-                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === 'all'
                     ? 'bg-white text-slate-900 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
@@ -189,33 +209,43 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
               </button>
               <button
                 onClick={() => setActiveTab('student')}
-                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === 'student'
                     ? 'bg-white text-blue-600 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Murid ({users.filter((u) => u.role === 'student').length})
+                👤 Murid ({individualStudents.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('group')}
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  activeTab === 'group'
+                    ? 'bg-white text-amber-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                👥 Kelompok ({groupAccounts.length})
               </button>
               <button
                 onClick={() => setActiveTab('teacher')}
-                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === 'teacher'
                     ? 'bg-white text-purple-600 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Guru ({users.filter((u) => u.role === 'teacher').length})
+                🧑‍🏫 Guru ({teachers.length})
               </button>
               <button
                 onClick={() => setActiveTab('admin')}
-                className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   activeTab === 'admin'
                     ? 'bg-white text-emerald-700 shadow-xs'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                Admin ({users.filter((u) => u.role === 'admin').length})
+                🛡️ Admin ({admins.length})
               </button>
             </div>
 
@@ -240,17 +270,28 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                 ) : (
                   <>
                     <Save className="w-3.5 h-3.5" />
-                    <span>Simpan Akun</span>
+                    <span>Simpan</span>
                   </>
                 )}
               </button>
-              <button
-                onClick={() => onOpenCreateModal(activeTab === 'all' ? undefined : activeTab)}
-                className="flex-1 sm:flex-none px-3.5 py-1.5 rounded-xl bg-[#4F8EF7] text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-blue-600 shadow-xs transition-colors shrink-0 cursor-pointer"
-              >
-                <UserPlus className="w-3.5 h-3.5" />
-                <span>Tambah Akun</span>
-              </button>
+
+              {activeTab === 'group' ? (
+                <button
+                  onClick={() => onOpenCreateModal('student', true)}
+                  className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition-colors shrink-0 cursor-pointer"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>+ Kelompok</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => onOpenCreateModal(activeTab === 'teacher' ? 'teacher' : activeTab === 'admin' ? 'school_admin' : 'student', false)}
+                  className="flex-1 sm:flex-none px-3 py-1.5 rounded-xl bg-[#4F8EF7] text-white font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-blue-600 shadow-xs transition-colors shrink-0 cursor-pointer"
+                >
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span>+ Akun</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -261,7 +302,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari berdasarkan nama, NISN/NIP, atau kelas..."
+              placeholder="Cari berdasarkan nama, anggota, NISN/NIP, atau kelas..."
               className="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
@@ -276,12 +317,15 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
           ) : (
             filteredUsers.map((u) => {
               const isCurrent = u.id === currentUser.id;
+              const isGroupUser = Boolean(u.isGroup || (u.groupMembers && u.groupMembers.length > 0));
               return (
                 <div
                   key={u.id}
                   className={`p-3 rounded-2xl border transition-all flex items-center justify-between gap-3 ${
                     isCurrent
                       ? 'border-[#4F8EF7] bg-blue-50/40 shadow-xs'
+                      : isGroupUser
+                      ? 'border-amber-100 bg-amber-50/20 hover:border-amber-300 hover:bg-amber-50/40'
                       : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}
                 >
@@ -295,13 +339,13 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           (e.target as HTMLImageElement).src = fallbackUrl;
                         }
                       }}
-                      className="w-10 h-10 rounded-xl object-cover shrink-0"
+                      className="w-10 h-10 rounded-xl object-cover shrink-0 ring-1 ring-slate-200"
                     />
                     <div className="min-w-0 space-y-0.5">
                       <span className="text-xs sm:text-sm font-extrabold text-[#25324B] break-words block leading-snug">
                         {u.name.replace(/\s*(\[|\()(student|guru|teacher|admin|kelompok|central_admin|school_admin)[^\]\)]*(\]|\))/gi, '').trim()}
                       </span>
-                      <div className="flex items-center gap-1.5 pt-0.5">
+                      <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
                         {getRoleBadge(u)}
                         {u.status === 'inactive' && (
                           <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-rose-50 text-rose-600">
@@ -309,7 +353,12 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           </span>
                         )}
                       </div>
-                      {u.nisnNip && (
+                      {isGroupUser && u.groupMembers && u.groupMembers.length > 0 && (
+                        <p className="text-[10px] text-slate-500 font-medium truncate max-w-xs">
+                          Anggota: {u.groupMembers.join(', ')}
+                        </p>
+                      )}
+                      {u.nisnNip && !isGroupUser && (
                         <p className="text-[10px] text-slate-400 font-mono">
                           {u.role === 'student' ? 'NISN. ' : 'NIP. '}
                           {u.nisnNip}
@@ -321,7 +370,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                   <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => onOpenEditModal(u)}
-                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors"
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                       title="Edit Akun"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
@@ -337,7 +386,7 @@ export const AccountSwitcherModal: React.FC<AccountSwitcherModalProps> = ({
                           onSelectUser(u);
                           onClose();
                         }}
-                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 transition-colors shadow-xs"
+                        className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-[11px] font-bold flex items-center gap-1 transition-colors shadow-xs cursor-pointer"
                       >
                         <span>Masuk</span>
                         <ArrowRight className="w-3 h-3" />
