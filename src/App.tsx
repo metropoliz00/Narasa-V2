@@ -416,7 +416,7 @@ export default function App() {
         return u;
       });
       try {
-        localStorage.setItem('narasa_system_users', JSON.stringify(updated));
+        localStorage.setItem('narasa_users_data', JSON.stringify(updated));
       } catch (e) {}
       return updated;
     });
@@ -455,6 +455,11 @@ export default function App() {
         try {
           localStorage.setItem('narasa_users_data', JSON.stringify(remoteUsers));
         } catch (e) {}
+        // Synchronize current user with authentic database record
+        setCurrentUser((prev) => {
+          const matched = remoteUsers.find((u) => u.id === prev.id) || remoteUsers.find((u) => u.name === prev.name);
+          return matched ? normalizeUserAvatar(matched) : prev;
+        });
       }
     } catch (e) {
       console.warn('Failed to load users from DB:', e);
@@ -750,10 +755,10 @@ export default function App() {
       const rawUser: UserProfile = {
         ...userData,
         id: finalId,
-        schoolName: userData.schoolName || currentUser.schoolName || 'SDN 01 Nusantara',
+        schoolName: userData.schoolName || currentUser.schoolName || 'UPT SD Negeri Remen 2',
         schoolId: userData.schoolId || currentUser.schoolId || 'SDN01',
-        className: userData.className || currentUser.className || (userData.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${userData.classId || currentUser.classId || 'V-A'}`),
-        classId: userData.classId || currentUser.classId || 'V-A'
+        className: userData.className || currentUser.className || (userData.role === 'student' ? 'Kelas V' : `Guru Kelas ${userData.classId || currentUser.classId || 'V'}`),
+        classId: userData.classId || currentUser.classId || 'V'
       };
       return normalizeUserAvatar(rawUser);
     });
@@ -1055,6 +1060,10 @@ export default function App() {
         const initialDraft: StudentExplorationDraft = {
           studentId: currentUser.id,
           studentName: currentUser.name,
+          schoolId: currentUser.schoolId || 'SDN01',
+          schoolName: currentUser.schoolName || 'UPT SD Negeri Remen 2',
+          classId: currentUser.classId || 'V',
+          className: currentUser.className || 'Kelas V',
           missionId: targetMission.id || null,
           missionTitle: targetMission.title,
           subject: targetMission.subject,
@@ -1124,6 +1133,10 @@ export default function App() {
         id: `session-${Date.now()}`,
         studentId: currentUser.id,
         studentName: currentUser.name,
+        schoolId: currentUser.schoolId || 'SDN01',
+        schoolName: currentUser.schoolName || 'UPT SD Negeri Remen 2',
+        classId: currentUser.classId || 'V',
+        className: currentUser.className || 'Kelas V',
         missionId: currentMissionTarget.id,
         missionTitle: currentMissionTarget.title,
         subject: currentMissionTarget.subject,

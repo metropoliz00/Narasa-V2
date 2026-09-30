@@ -15,7 +15,7 @@ export function adaptSlidesToUser(
     .replace(/\s*(\[|\()(student|guru|teacher|admin|kelompok|central_admin|school_admin)[^\]\)]*(\]|\))/gi, '')
     .trim();
   const firstName = fullName.split(' ')[0] || fullName;
-  const school = user.schoolName || 'SDN 01 Nusantara';
+  const school = user.schoolName || 'UPT SD Negeri Remen 2';
   const className = user.className || 'Kelas V';
 
   let hasChanged = false;
@@ -36,7 +36,7 @@ export function adaptSlidesToUser(
     const newSubtitle = subtitle
       .replace(/Adit Pratama/gi, fullName)
       .replace(/\bAdit\b/g, firstName)
-      .replace(/Kelas V SDN 01 Nusantara/gi, `${className} ${school}`)
+      .replace(/Kelas V(-A)?\s*(SDN 01 Nusantara|UPT SD Negeri Remen 2)?/gi, `${className} ${school}`)
       .replace(/SDN 01 Nusantara/gi, school);
 
     // Transform content
@@ -96,6 +96,10 @@ export function adaptSessionToUser(
     ...session,
     studentId: user.id,
     studentName: fullName,
+    schoolId: user.schoolId || session.schoolId || 'SDN01',
+    schoolName: user.schoolName || session.schoolName || 'UPT SD Negeri Remen 2',
+    classId: user.classId || session.classId || 'V',
+    className: user.className || session.className || 'Kelas V',
     presentation: adaptSlidesToUser(session.presentation || [], user),
     peerQuestions: (session.peerQuestions || []).map((pq) => ({
       ...pq,

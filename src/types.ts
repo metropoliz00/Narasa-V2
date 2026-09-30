@@ -496,6 +496,10 @@ export interface StudentExplorationDraft {
   id?: string;
   studentId: string;
   studentName?: string;
+  schoolName?: string;
+  schoolId?: string;
+  className?: string;
+  classId?: string;
   missionId: string | null;
   missionTitle?: string;
   subject?: string;
@@ -523,6 +527,10 @@ export interface StudentActivitySession {
   subject: string;
   studentId: string;
   studentName: string;
+  schoolName?: string;
+  schoolId?: string;
+  className?: string;
+  classId?: string;
   image: string;
   imageLabel: string;
   learningBridge: AILearningBridgeResult;

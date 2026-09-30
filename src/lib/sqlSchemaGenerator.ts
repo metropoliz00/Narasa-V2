@@ -375,7 +375,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_mission ON public.student_sessions(missi
     // Ensure all user schools exist
     users.forEach((u) => {
       const sId = u.schoolId || 'SDN01';
-      const sName = u.schoolName || 'SDN 01 Nusantara';
+      const sName = u.schoolName || 'UPT SD Negeri Remen 2';
       if (!schoolsMap.has(sId)) {
         schoolsMap.set(sId, {
           id: sId,
@@ -431,8 +431,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_mission ON public.student_sessions(missi
     // 6.2 Classes derived from user data
     const classesMap = new Map<string, { id: string; schoolId: string; name: string }>();
     users.forEach((u) => {
-      const cId = u.classId || 'V-A';
-      const cName = u.className || 'Kelas V-A';
+      const cId = u.classId || 'V';
+      const cName = u.className || 'Kelas V';
       const sId = u.schoolId || 'SDN01';
       if (!classesMap.has(cId)) {
         classesMap.set(cId, { id: cId, schoolId: sId, name: cName });
@@ -458,8 +458,8 @@ CREATE INDEX IF NOT EXISTS idx_sessions_mission ON public.student_sessions(missi
       sql += `) VALUES\n`;
 
       const userRows = users.map((u) => {
-        const email = u.email || `${(u.username || u.name).toLowerCase().replace(/[^a-z0-9]/g, '')}@sdn01nusantara.sch.id`;
-        return `    (${escapeSql(u.id)}, ${escapeSql(u.name)}, ${escapeSql(u.role)}, ${escapeSql(u.gender || 'male')}, ${escapeSql(u.avatar)}, ${escapeSql(u.schoolId || 'SDN01')}, ${escapeSql(u.schoolName || 'SDN 01 Nusantara')}, ${escapeSql(u.classId || 'V-A')}, ${escapeSql(u.className || 'Kelas V-A')}, ${escapeSql(email)}, ${escapeSql(u.nisnNip || null)}, ${escapeSql(u.username || null)}, ${escapeSql(u.password || '123456')}, ${escapeSql(u.phone || null)}, ${escapeSql(u.status || 'active')}, ${escapeSql(u.isGroup || false)}, ${escapeJson(u.groupMembers || [])}, ${escapeSql(u.joinedDate || 'Juli 2024')})`;
+        const email = u.email || `${(u.username || u.name).toLowerCase().replace(/[^a-z0-9]/g, '')}@siswa.sdn01.sch.id`;
+        return `    (${escapeSql(u.id)}, ${escapeSql(u.name)}, ${escapeSql(u.role)}, ${escapeSql(u.gender || 'male')}, ${escapeSql(u.avatar)}, ${escapeSql(u.schoolId || 'SDN01')}, ${escapeSql(u.schoolName || 'UPT SD Negeri Remen 2')}, ${escapeSql(u.classId || 'V')}, ${escapeSql(u.className || 'Kelas V')}, ${escapeSql(email)}, ${escapeSql(u.nisnNip || null)}, ${escapeSql(u.username || null)}, ${escapeSql(u.password || '123456')}, ${escapeSql(u.phone || null)}, ${escapeSql(u.status || 'active')}, ${escapeSql(u.isGroup || false)}, ${escapeJson(u.groupMembers || [])}, ${escapeSql(u.joinedDate || 'Juli 2024')})`;
       });
 
       sql += userRows.join(',\n') + '\n';
@@ -491,7 +491,7 @@ CREATE INDEX IF NOT EXISTS idx_sessions_mission ON public.student_sessions(missi
       sql += `) VALUES\n`;
 
       const groupRows = groups.map((g) => {
-        return `    (${escapeSql(g.id)}, ${escapeSql(g.name)}, ${escapeSql(g.schoolId || 'SDN01')}, ${escapeSql(g.schoolName || 'SDN 01 Nusantara')}, ${escapeSql(g.classId || 'V-A')}, ${escapeSql(g.className || 'Kelas V-A')}, ${escapeSql(g.leaderId || null)}, ${escapeSql(g.leaderName || null)}, ${escapeJson(g.memberIds || [])}, ${escapeJson(g.memberNames || [])}, ${escapeSql(g.avatar)}, ${escapeSql(g.email)}, ${escapeSql(g.motto || null)}, ${escapeSql(g.color || '#2563EB')}, ${escapeSql(g.accountUserId)})`;
+        return `    (${escapeSql(g.id)}, ${escapeSql(g.name)}, ${escapeSql(g.schoolId || 'SDN01')}, ${escapeSql(g.schoolName || 'UPT SD Negeri Remen 2')}, ${escapeSql(g.classId || 'V')}, ${escapeSql(g.className || 'Wali Kelas V (Akun Kelompok)')}, ${escapeSql(g.leaderId || null)}, ${escapeSql(g.leaderName || null)}, ${escapeJson(g.memberIds || [])}, ${escapeJson(g.memberNames || [])}, ${escapeSql(g.avatar)}, ${escapeSql(g.email)}, ${escapeSql(g.motto || null)}, ${escapeSql(g.color || '#2563EB')}, ${escapeSql(g.accountUserId)})`;
       });
 
       sql += groupRows.join(',\n') + '\n';

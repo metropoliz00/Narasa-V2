@@ -131,19 +131,19 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
             role: row.role,
             gender,
             avatar,
-            schoolName: row.school_name || 'SDN 01 Nusantara',
-            schoolId: row.school_id || 'SDN01',
-            className: (row.class_name || (row.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${row.class_id || 'V-A'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
-            classId: row.class_id || 'V-A',
+            schoolName: row.school_name || row.schoolName || '',
+            schoolId: row.school_id || row.schoolId || 'SDN01',
+            className: (row.class_name || row.className || (row.role === 'student' ? 'Kelas V' : `Guru Kelas ${row.class_id || row.classId || 'V'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
+            classId: row.class_id || row.classId || 'V',
             email: row.email || `${(row.name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '')}@narasa.id`,
             status: row.status || 'active',
-            nisnNip: row.nisn_nip || '',
+            nisnNip: row.nisn_nip || row.nisnNip || '',
             username: row.username || undefined,
             password: row.password || undefined,
             phone: row.phone || '',
-            joinedDate: row.joined_date || 'Hari ini',
-            isGroup: Boolean(row.is_group),
-            groupMembers: Array.isArray(row.group_members) ? row.group_members : []
+            joinedDate: row.joined_date || row.joinedDate || 'Hari ini',
+            isGroup: Boolean(row.is_group ?? row.isGroup),
+            groupMembers: Array.isArray(row.group_members) ? row.group_members : Array.isArray(row.groupMembers) ? row.groupMembers : []
           };
         });
       }
@@ -169,10 +169,10 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
               role: u.role,
               gender,
               avatar,
-              schoolName: u.schoolName || u.school_name || 'SDN 01 Nusantara',
+              schoolName: u.schoolName || u.school_name || '',
               schoolId: u.schoolId || u.school_id || 'SDN01',
-              className: (u.className || u.class_name || (u.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${u.classId || u.class_id || 'V-A'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
-              classId: u.classId || u.class_id || 'V-A',
+              className: (u.className || u.class_name || (u.role === 'student' ? 'Kelas V' : `Guru Kelas ${u.classId || u.class_id || 'V'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
+              classId: u.classId || u.class_id || 'V',
               email: u.email || `${(u.name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '')}@narasa.id`,
               status: u.status || 'active',
               nisnNip: u.nisnNip || u.nisn_nip || '',
@@ -180,7 +180,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
               password: u.password || undefined,
               phone: u.phone || '',
               joinedDate: u.joinedDate || u.joined_date || 'Hari ini',
-              isGroup: Boolean(u.isGroup || u.is_group),
+              isGroup: Boolean(u.isGroup ?? u.is_group),
               groupMembers: Array.isArray(u.groupMembers) ? u.groupMembers : Array.isArray(u.group_members) ? u.group_members : []
             };
           });
@@ -191,7 +191,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
     }
   }
 
-  // 3. Fallback to cache
+  // 3. Fallback to cache only if both primary and secondary failed completely
   if (fetchedList.length === 0) {
     try {
       const saved = localStorage.getItem('narasa_users_data');
@@ -208,35 +208,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
     fetchedList = INITIAL_SYSTEM_USERS;
   }
 
-  // MERGE with existing localStorage 'narasa_users_data' so custom user edits (schoolName, className, etc.) are never overwritten
-  try {
-    const savedLocal = localStorage.getItem('narasa_users_data');
-    if (savedLocal) {
-      const localUsers: UserProfile[] = JSON.parse(savedLocal);
-      if (Array.isArray(localUsers) && localUsers.length > 0) {
-        const map = new Map<string, UserProfile>();
-        fetchedList.forEach(u => map.set(u.id, u));
-        localUsers.forEach(lu => {
-          const existing = map.get(lu.id);
-          if (existing) {
-            map.set(lu.id, {
-              ...existing,
-              schoolName: lu.schoolName && lu.schoolName !== 'SDN 01 Nusantara' ? lu.schoolName : existing.schoolName,
-              className: lu.className && lu.className !== 'Kelas V-A' ? lu.className : existing.className,
-              nisnNip: lu.nisnNip || existing.nisnNip,
-              phone: lu.phone || existing.phone,
-              avatar: lu.avatar || existing.avatar,
-              name: lu.name || existing.name
-            });
-          } else {
-            map.set(lu.id, lu);
-          }
-        });
-        fetchedList = Array.from(map.values());
-      }
-    }
-  } catch (e) {}
-
+  // Always update localStorage cache with authentic data from database
   try {
     localStorage.setItem('narasa_users_data', JSON.stringify(fetchedList));
   } catch (e) {}
@@ -351,7 +323,7 @@ export async function dbUpsertUser(user: UserProfile): Promise<boolean> {
 
   try {
     const targetSchoolId = user.schoolId || 'SDN01';
-    await ensureSchoolsExist(client, [{ id: targetSchoolId, name: user.schoolName || 'SDN 01 Nusantara' }]);
+    await ensureSchoolsExist(client, [{ id: targetSchoolId, name: user.schoolName || targetSchoolId }]);
 
     const safeId = (user.id || 'user').toLowerCase().replace(/[^a-z0-9]/g, '');
     const cleanEmail = user.email && user.email.trim() && user.email.includes('@')
@@ -364,10 +336,10 @@ export async function dbUpsertUser(user: UserProfile): Promise<boolean> {
       role: user.role,
       gender: user.gender || 'male',
       avatar: user.avatar,
-      school_name: user.schoolName || 'SDN 01 Nusantara',
+      school_name: user.schoolName || '',
       school_id: targetSchoolId,
-      class_name: user.className || (user.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${user.classId || 'V-A'}`),
-      class_id: user.classId || 'V-A',
+      class_name: user.className || (user.role === 'student' ? 'Kelas V' : `Guru Kelas ${user.classId || 'V'}`),
+      class_id: user.classId || 'V',
       email: cleanEmail,
       status: user.status || 'active',
       nisn_nip: user.nisnNip || null,
@@ -427,8 +399,8 @@ export async function dbBulkUpsertUsers(users: UserProfile[]): Promise<{
   try {
     // Ensure all schools exist in the schools table first to satisfy foreign key constraint
     const schoolsMap = new Map<string, string>();
-    schoolsMap.set('SDN01', 'SDN 01 Nusantara');
-    schoolsMap.set('SDN02', 'SDN 02 Merdeka');
+    schoolsMap.set('SDN01', 'UPT SD Negeri Remen 2');
+    schoolsMap.set('SDN02', 'SDN 02 Kenanga');
     users.forEach((u) => {
       if (u.schoolId) {
         schoolsMap.set(u.schoolId, u.schoolName || u.schoolId);
@@ -459,10 +431,10 @@ export async function dbBulkUpsertUsers(users: UserProfile[]): Promise<{
         role: user.role,
         gender: user.gender || 'male',
         avatar: user.avatar || null,
-        school_name: user.schoolName || 'SDN 01 Nusantara',
+        school_name: user.schoolName || '',
         school_id: user.schoolId || 'SDN01',
-        class_name: user.className || (user.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${user.classId || 'V-A'}`),
-        class_id: user.classId || 'V-A',
+        class_name: user.className || (user.role === 'student' ? 'Kelas V' : `Guru Kelas ${user.classId || 'V'}`),
+        class_id: user.classId || 'V',
         email,
         status: user.status || 'active',
         nisn_nip: user.nisnNip || null,
@@ -925,6 +897,10 @@ export async function dbFetchSessions(): Promise<StudentActivitySession[]> {
             subject: row.subject,
             studentId: row.student_id,
             studentName: row.student_name,
+            schoolId: row.school_id || row.schoolId || 'SDN01',
+            schoolName: row.school_name || row.schoolName || 'UPT SD Negeri Remen 2',
+            classId: row.class_id || row.classId || 'V',
+            className: row.class_name || row.className || 'Kelas V',
             image: row.image,
             imageLabel: row.image_label,
             learningBridge: row.learning_bridge,
@@ -1032,23 +1008,26 @@ export async function dbUpsertSession(session: StudentActivitySession): Promise<
   const client = getSupabaseClient();
   if (client) {
     try {
-      // 3.A Ensure parent users record exists
+      // 3.A Ensure parent users record exists without overwriting existing data
       if (session.studentId) {
         try {
-          const sanitizedId = String(session.studentId).replace(/[^a-zA-Z0-9_-]/g, '');
-          await client.from('users').upsert({
-            id: session.studentId,
-            name: session.studentName || 'Murid Narasa',
-            role: 'student',
-            gender: 'male',
-            email: `${sanitizedId || 'murid'}@narasa.sch.id`,
-            school_name: 'SDN 01 Nusantara',
-            school_id: 'SDN01',
-            class_name: 'Kelas V-A',
-            class_id: 'class-5a',
-            status: 'active',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
-          }, { onConflict: 'id' });
+          const { data: existingUser } = await client.from('users').select('id').eq('id', session.studentId).maybeSingle();
+          if (!existingUser) {
+            const sanitizedId = String(session.studentId).replace(/[^a-zA-Z0-9_-]/g, '');
+            await client.from('users').insert({
+              id: session.studentId,
+              name: session.studentName || 'Murid Narasa',
+              role: 'student',
+              gender: 'male',
+              email: `${sanitizedId || 'murid'}@narasa.sch.id`,
+              school_name: session.schoolName || '',
+              school_id: session.schoolId || 'SDN01',
+              class_name: session.className || 'Kelas V',
+              class_id: session.classId || 'V',
+              status: 'active',
+              avatar: getDefaultAvatar('student', 'male')
+            });
+          }
         } catch (errUser) {
           console.warn('Ensure parent user for session notice:', errUser);
         }
@@ -1087,6 +1066,10 @@ export async function dbUpsertSession(session: StudentActivitySession): Promise<
         subject: session.subject,
         student_id: session.studentId,
         student_name: session.studentName,
+        school_id: session.schoolId || 'SDN01',
+        school_name: session.schoolName || 'UPT SD Negeri Remen 2',
+        class_id: session.classId || 'V',
+        class_name: session.className || 'Kelas V',
         image: session.image,
         image_label: session.imageLabel,
         learning_bridge: session.learningBridge || {},
@@ -1148,21 +1131,25 @@ export async function dbSaveStudentDraft(draft: StudentExplorationDraft): Promis
   const client = getSupabaseClient();
   if (client && payload.activeLearningBridge && payload.currentCapturedImage) {
     try {
-      // Ensure user exists first
+      // Ensure user exists first without overwriting profile
       try {
-        const sanitizedId = String(draft.studentId).replace(/[^a-zA-Z0-9_-]/g, '');
-        await client.from('users').upsert({
-          id: draft.studentId,
-          name: draft.studentName || 'Murid Narasa',
-          role: 'student',
-          gender: 'male',
-          email: `${sanitizedId || 'murid'}@narasa.sch.id`,
-          school_name: 'SDN 01 Nusantara',
-          school_id: 'SDN01',
-          class_name: 'Kelas V-A',
-          class_id: 'class-5a',
-          status: 'active'
-        }, { onConflict: 'id' });
+        const { data: existingUser } = await client.from('users').select('id').eq('id', draft.studentId).maybeSingle();
+        if (!existingUser) {
+          const sanitizedId = String(draft.studentId).replace(/[^a-zA-Z0-9_-]/g, '');
+          await client.from('users').insert({
+            id: draft.studentId,
+            name: draft.studentName || 'Murid Narasa',
+            role: 'student',
+            gender: 'male',
+            email: `${sanitizedId || 'murid'}@narasa.sch.id`,
+            school_name: draft.schoolName || '',
+            school_id: draft.schoolId || 'SDN01',
+            class_name: draft.className || 'Kelas V',
+            class_id: draft.classId || 'V',
+            status: 'active',
+            avatar: getDefaultAvatar('student', 'male')
+          });
+        }
       } catch (errUser) {}
 
       // Ensure mission exists
@@ -1535,16 +1522,16 @@ export async function dbUpsertGroup(group: StudentGroup): Promise<boolean> {
           name: group.name,
           email: group.email || `${group.id}@narasa.sch.id`,
           schoolId: group.schoolId || 'SDN01',
-          schoolName: group.schoolName || 'SDN 01 Nusantara',
-          className: group.className || 'Kelas V-A',
-          classId: group.classId || 'V-A',
+          schoolName: group.schoolName || 'UPT SD Negeri Remen 2',
+          className: group.className || 'Wali Kelas V (Akun Kelompok)',
+          classId: group.classId || 'V',
           role: 'student'
         }]);
       }
       await ensureClassesExist(client, [{ 
-        id: group.classId || 'V-A', 
+        id: group.classId || 'V', 
         schoolId: group.schoolId || 'SDN01', 
-        name: group.className || 'Kelas V-A' 
+        name: group.className || 'Wali Kelas V (Akun Kelompok)' 
       }]);
       const payload = {
         id: group.id,
@@ -2317,26 +2304,29 @@ export async function dbUpsertQuizSubmission(sub: QuizSubmission): Promise<boole
   const client = getSupabaseClient();
   if (client) {
     try {
-      // 3.A Ensure parent user exists to satisfy foreign key (quiz_submissions_user_id_fkey)
+      // 3.A Ensure parent user exists to satisfy foreign key without overwriting profile
       if (sub.userId) {
         try {
-          const sanitizedId = String(sub.userId).replace(/[^a-zA-Z0-9_-]/g, '');
-          await client.from('users').upsert({
-            id: sub.userId,
-            name: sub.userName || 'Murid NARASA',
-            email: `${sanitizedId || 'murid'}@narasa.sch.id`,
-            role: 'student',
-            gender: 'male',
-            school_name: sub.schoolName || 'SDN 01 Nusantara',
-            school_id: sub.schoolId || 'SDN01',
-            class_name: sub.className || 'Kelas V-A',
-            class_id: sub.classId || 'class-5a',
-            status: 'active',
-            avatar: sub.userAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
-            joined_date: 'Hari ini',
-            is_group: Boolean(sub.isGroup),
-            group_members: Array.isArray(sub.groupMembers) ? sub.groupMembers : []
-          }, { onConflict: 'id' });
+          const { data: existingUser } = await client.from('users').select('id').eq('id', sub.userId).maybeSingle();
+          if (!existingUser) {
+            const sanitizedId = String(sub.userId).replace(/[^a-zA-Z0-9_-]/g, '');
+            await client.from('users').insert({
+              id: sub.userId,
+              name: sub.userName || 'Murid NARASA',
+              email: `${sanitizedId || 'murid'}@narasa.sch.id`,
+              role: 'student',
+              gender: 'male',
+              school_name: sub.schoolName || '',
+              school_id: sub.schoolId || 'SDN01',
+              class_name: sub.className || 'Kelas V',
+              class_id: sub.classId || 'V',
+              status: 'active',
+              avatar: sub.userAvatar || getDefaultAvatar('student', 'male'),
+              joined_date: 'Hari ini',
+              is_group: Boolean(sub.isGroup),
+              group_members: Array.isArray(sub.groupMembers) ? sub.groupMembers : []
+            });
+          }
         } catch (errUser) {
           console.warn('Ensure parent user for quiz submission notice:', errUser);
         }
@@ -2383,9 +2373,9 @@ export async function dbUpsertQuizSubmission(sub: QuizSubmission): Promise<boole
         user_avatar: sub.userAvatar || null,
         is_group: Boolean(sub.isGroup),
         group_members: Array.isArray(sub.groupMembers) ? sub.groupMembers : [],
-        class_name: sub.className || 'Kelas V-A',
-        class_id: sub.classId || 'class-5a',
-        school_name: sub.schoolName || 'SDN 01 Nusantara',
+        class_name: sub.className || 'Kelas V',
+        class_id: sub.classId || 'V',
+        school_name: sub.schoolName || 'UPT SD Negeri Remen 2',
         school_id: sub.schoolId || 'SDN01',
         score: Number(sub.score) || 0,
         objective_score: Number(sub.objectiveScore ?? sub.score) || 0,
@@ -2422,9 +2412,9 @@ export async function dbUpsertQuizSubmission(sub: QuizSubmission): Promise<boole
           user_avatar: sub.userAvatar || null,
           is_group: Boolean(sub.isGroup),
           group_members: Array.isArray(sub.groupMembers) ? sub.groupMembers : [],
-          class_name: sub.className || 'Kelas V-A',
-          class_id: sub.classId || 'class-5a',
-          school_name: sub.schoolName || 'SDN 01 Nusantara',
+          class_name: sub.className || 'Kelas V',
+          class_id: sub.classId || 'V',
+          school_name: sub.schoolName || 'UPT SD Negeri Remen 2',
           school_id: sub.schoolId || 'SDN01',
           score: Number(sub.score) || 0,
           correct_count: Number(sub.correctCount) || 0,

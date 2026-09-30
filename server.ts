@@ -609,7 +609,7 @@ app.get("/api/supabase-config", (req, res) => {
 const DEFAULT_INITIAL_SCHOOLS = [
   {
     id: "SDN01",
-    name: "SDN 01 Nusantara",
+    name: "UPT SD Negeri Remen 2",
     npsn: "20104050",
     level: "SD / MI",
     status: "Negeri",
@@ -620,14 +620,14 @@ const DEFAULT_INITIAL_SCHOOLS = [
     supervisorName: "Dr. H. Bambang Soetopo, M.M.",
     supervisorNip: "196805121992031003",
     phone: "(021) 7890123",
-    email: "sdn01nusantara@kemdikbud.go.id",
-    website: "https://sdn01nusantara.sch.id",
+    email: "uptsdnremen2@kemdikbud.go.id",
+    website: "https://uptsdnremen2.sch.id",
     address: "Jl. Pendidikan Merdeka No. 45",
     rtRw: "005/002",
-    village: "Menteng",
-    district: "Menteng",
-    city: "Kota Jakarta Pusat",
-    province: "DKI Jakarta",
+    village: "Remen",
+    district: "Jenu",
+    city: "Kabupaten Tuban",
+    province: "Jawa Timur",
     postalCode: "10310",
     motto: "Cerdas, Berkarakter, dan Berdaya Nalar Kritis",
     academicYear: "2024/2025",
@@ -936,10 +936,10 @@ async function callGeminiWithFallback(
   timeoutMs: number = 25000
 ) {
   // Valid model candidates per official Gemini SDK guidelines:
-  // 1. gemini-3.1-flash-lite (high-speed, minimal latency, reliable)
-  // 2. gemini-flash-latest (latest flash alias)
-  // 3. gemini-3.8-flash (primary multimodal)
-  const candidateModels = ["gemini-3.1-flash-lite", "gemini-flash-latest", "gemini-3.8-flash"];
+  // 1. gemini-2.5-flash (fast multimodal, reliable quota)
+  // 2. gemini-3.1-flash-lite (high-speed, minimal latency, reliable)
+  // 3. gemini-flash-latest (latest flash alias)
+  const candidateModels = ["gemini-2.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
   let lastError: any = null;
 
   for (let i = 0; i < candidateModels.length; i++) {
@@ -967,6 +967,12 @@ async function callGeminiWithFallback(
         
         console.warn(`[Gemini API] Model ${model} (attempt ${attempt}/2) encountered error: ${errMsg.slice(0, 150)} (Code: ${errCode})`);
 
+        // If quota exceeded / resource exhausted for this model, immediately try next candidate model without wasting attempts
+        if (errMsg.toLowerCase().includes("resource_exhausted") || errMsg.toLowerCase().includes("quota exceeded")) {
+          console.info(`[Gemini API] Quota limit for ${model}, switching immediately to next candidate model...`);
+          break;
+        }
+
         const isTemporaryError =
           errCode === 503 ||
           errCode === 429 ||
@@ -975,7 +981,6 @@ async function callGeminiWithFallback(
           errMsg.toLowerCase().includes("timeout") ||
           errMsg.toLowerCase().includes("high demand") ||
           errMsg.toLowerCase().includes("unavailable") ||
-          errMsg.toLowerCase().includes("resource_exhausted") ||
           errMsg.toLowerCase().includes("busy") ||
           errMsg.toLowerCase().includes("overloaded");
 
@@ -1515,6 +1520,13 @@ app.post("/api/generate-presentation", async (req, res) => {
     }
 
     const { studentName, subject, missionTitle, image, imageLabel, learningBridge, answers, reflection } = studentSession;
+    
+    // Resolve student school and class directly from database (users.json) as authoritative source
+    const users = readDbFile<any[]>("users.json", []);
+    const dbUser = users.find((u: any) => u.id === studentSession.studentId || u.name === studentSession.studentName);
+    const resolvedClassName = studentSession.className || dbUser?.className || 'Kelas V';
+    const resolvedSchoolName = studentSession.schoolName || dbUser?.schoolName || 'UPT SD Negeri Remen 2';
+
     const objName = imageLabel || learningBridge?.detectedObject || 'Objek Nyata';
     const matName = learningBridge?.material || subject || 'STEM';
     const subjName = subject || learningBridge?.subject || 'Sains';
@@ -1538,7 +1550,7 @@ app.post("/api/generate-presentation", async (req, res) => {
         slideNumber: 1,
         title: `Identitas Murid & Portofolio Pengamatan`,
         subtitle: `Misi: ${missionTitle || 'Eksplorasi Kontekstual'}`,
-        content: `Halo! Nama saya ${studentName}. Saya berasal dari kelas ${studentSession.className || 'V'} di ${studentSession.schoolName || 'SDN 01 Nusantara'}. Hari ini saya akan mempresentasikan hasil penyelidikan objek "${objName}".`,
+        content: `Halo! Nama saya ${studentName}. Saya berasal dari ${resolvedClassName} di ${resolvedSchoolName}. Hari ini saya akan mempresentasikan hasil penyelidikan objek "${objName}".`,
         image: image,
         badge: "👤 Identitas Murid",
         tags: [subjName, "Portofolio Siswa"],
@@ -1639,8 +1651,10 @@ app.post("/api/polish-slide", async (req, res) => {
 
     const activeStudent = (studentName || "Siswa").replace(/\s*(\[|\()(student|guru|teacher|admin|kelompok|central_admin|school_admin)[^\]\)]*(\]|\))/gi, '').trim();
     const firstName = activeStudent.split(" ")[0] || activeStudent;
-    const activeSchool = schoolName || "SDN 01 Nusantara";
-    const activeClass = className || "Kelas V";
+    const users = readDbFile<any[]>("users.json", []);
+    const dbUser = users.find((u: any) => u.name === studentName || u.id === req.body.studentId);
+    const activeSchool = schoolName || dbUser?.schoolName || "UPT SD Negeri Remen 2";
+    const activeClass = className || dbUser?.className || "Kelas V";
 
     if (client) {
       try {
@@ -2198,15 +2212,26 @@ Prompt yang Ditulis Murid:
 
 Silakan lakukan analisis ketajaman prompt, berikan skor (0-100), feedback ramah anak, boosted prompt, dan hasilkan penjelasan materi yang super lengkap!`;
 
-        const response = await client.models.generateContent({
-          model: "gemini-3.8-flash",
-          contents: `${systemPrompt}\n\n${userPrompt}`,
-          config: {
-            responseMimeType: "application/json"
+        let parsed: any = null;
+        const promptCoachModels = ["gemini-2.5-flash", "gemini-3.1-flash-lite", "gemini-flash-latest"];
+        for (const coachModel of promptCoachModels) {
+          try {
+            const response = await client.models.generateContent({
+              model: coachModel,
+              contents: `${systemPrompt}\n\n${userPrompt}`,
+              config: {
+                responseMimeType: "application/json"
+              }
+            });
+            parsed = extractJsonFromGeminiResponse(response);
+            if (parsed && typeof parsed.promptScore === 'number' && parsed.fullExplanation) {
+              break;
+            }
+          } catch (modelErr: any) {
+            console.warn(`[Gemini API] Prompt coach with ${coachModel} failed: ${modelErr?.message?.slice(0, 100)}, trying next...`);
           }
-        });
+        }
 
-        const parsed = extractJsonFromGeminiResponse(response);
         if (parsed && typeof parsed.promptScore === 'number' && parsed.fullExplanation) {
           saveStudentPromptLog({
             studentPrompt,

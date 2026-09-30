@@ -264,10 +264,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           'Peran': 'Murid',
           'Username': 'budisantoso',
           'Password': 'password123',
-          'Nama Sekolah': 'SDN 01 Nusantara',
+          'Nama Sekolah': 'UPT SD Negeri Remen 2',
           'ID Sekolah': 'SDN01',
-          'Rombel / Kelas': 'Kelas V-A',
-          'ID Kelas': 'V-A',
+          'Rombel / Kelas': 'Kelas V',
+          'ID Kelas': 'V',
           'NISN / NIP': '0123456789',
           'Nomor Telepon': '081234567890',
           'Jenis Kelamin': 'L',
@@ -280,10 +280,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           'Peran': 'Murid',
           'Username': 'kelompokgaruda',
           'Password': 'garuda2024',
-          'Nama Sekolah': 'SDN 01 Nusantara',
+          'Nama Sekolah': 'UPT SD Negeri Remen 2',
           'ID Sekolah': 'SDN01',
-          'Rombel / Kelas': 'Kelas V-A',
-          'ID Kelas': 'V-A',
+          'Rombel / Kelas': 'Wali Kelas V (Akun Kelompok)',
+          'ID Kelas': 'V',
           'NISN / NIP': 'KELOMPOK-01',
           'Nomor Telepon': '081234567891',
           'Jenis Kelamin': 'L',
@@ -296,10 +296,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           'Peran': 'Guru',
           'Username': 'sitiaminah',
           'Password': 'guru2024',
-          'Nama Sekolah': 'SDN 01 Nusantara',
+          'Nama Sekolah': 'UPT SD Negeri Remen 2',
           'ID Sekolah': 'SDN01',
-          'Rombel / Kelas': 'Guru Kelas V-A',
-          'ID Kelas': 'V-A',
+          'Rombel / Kelas': 'Guru Kelas V',
+          'ID Kelas': 'V',
           'NISN / NIP': '198001012005012001',
           'Nomor Telepon': '081122334455',
           'Jenis Kelamin': 'P',
@@ -312,7 +312,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           'Peran': 'Admin Sekolah',
           'Username': 'hendrowibowo',
           'Password': 'admin123',
-          'Nama Sekolah': 'SDN 01 Nusantara',
+          'Nama Sekolah': 'UPT SD Negeri Remen 2',
           'ID Sekolah': 'SDN01',
           'Rombel / Kelas': 'Admin Sekolah',
           'ID Kelas': 'ALL',
@@ -469,10 +469,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           const username = (row['Username'] || row['username'] || row['User Name'] || name.toLowerCase().replace(/[^a-z0-9]/g, '')).toString().replace(/^@/, '').trim();
           const password = (row['Password'] || row['password'] || row['Kata Sandi'] || '123456').toString().trim();
-          const schoolName = (row['Nama Sekolah'] || row['schoolName'] || row['sekolah'] || (currentUser?.schoolName || 'SDN 01 Nusantara')).toString().trim();
+          const schoolName = (row['Nama Sekolah'] || row['schoolName'] || row['sekolah'] || (currentUser?.schoolName || 'UPT SD Negeri Remen 2')).toString().trim();
           const schoolId = (row['ID Sekolah'] || row['schoolId'] || (currentUser?.schoolId || 'SDN01')).toString().trim();
-          const classId = (row['ID Kelas'] || row['classId'] || (role === 'student' ? 'V-A' : role === 'teacher' ? 'V-A' : 'ALL')).toString().trim();
-          let className = (row['Rombel / Kelas'] || row['className'] || row['kelas'] || (role === 'student' ? 'Kelas V-A' : role === 'teacher' ? `Guru Kelas ${classId}` : 'Admin Sekolah')).toString().trim();
+          const classId = (row['ID Kelas'] || row['classId'] || (role === 'student' ? 'V' : role === 'teacher' ? 'V' : 'ALL')).toString().trim();
+          let className = (row['Rombel / Kelas'] || row['className'] || row['kelas'] || (role === 'student' ? 'Kelas V' : role === 'teacher' ? `Guru Kelas ${classId}` : 'Admin Sekolah')).toString().trim();
           if (role === 'teacher' && classId && classId !== 'ALL') {
             const cleanId = classId.replace(/^kelas\s*/gi, '').trim();
             if (!className.toLowerCase().startsWith('guru kelas')) {
@@ -620,7 +620,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const partnerSchools = distinctSchoolIds.map((sId) => {
     const schoolUsers = users.filter((u) => u.schoolId === sId);
     const matchedDbSchool = dbSchools.find((s) => s.id === sId);
-    const schoolName = matchedDbSchool?.name || schoolUsers[0]?.schoolName || (sId === 'SDN01' ? 'SDN 01 Nusantara' : sId === 'SDN02' ? 'SDN 02 Kenanga' : sId);
+    const schoolName = matchedDbSchool?.name || schoolUsers[0]?.schoolName || (sId === 'SDN01' ? 'UPT SD Negeri Remen 2' : sId === 'SDN02' ? 'SDN 02 Kenanga' : sId);
     const students = schoolUsers.filter((u) => u.role === 'student');
     const teachers = schoolUsers.filter((u) => u.role === 'teacher');
 
@@ -834,7 +834,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const handleSaveAccount = (userData: Omit<UserProfile, 'id'> & { id?: string }) => {
     const defaultSchoolId = currentUser?.schoolId || 'SDN01';
-    const defaultSchoolName = currentUser?.schoolName || 'SDN 01 Nusantara';
+    const defaultSchoolName = currentUser?.schoolName || 'UPT SD Negeri Remen 2';
     const finalData = {
       ...userData,
       schoolId: (userData.schoolId && userData.schoolId.trim() !== '') ? userData.schoolId : defaultSchoolId,
@@ -1025,7 +1025,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
               <span className="text-[11px] text-slate-400 font-semibold block">Akun Murid SD</span>
               <span className="text-2xl font-bold font-display text-blue-600">{studentsCount} Murid</span>
-              <span className="text-[10px] text-slate-400 block mt-1 truncate">{currentUser?.schoolName || 'SDN 01 Nusantara'}</span>
+              <span className="text-[10px] text-slate-400 block mt-1 truncate">{currentUser?.schoolName || 'UPT SD Negeri Remen 2'}</span>
             </div>
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
               <span className="text-[11px] text-slate-400 font-semibold block">Akun Guru</span>

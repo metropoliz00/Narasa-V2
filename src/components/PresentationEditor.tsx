@@ -170,7 +170,7 @@ export const PresentationEditor: React.FC<PresentationEditorProps> = ({
             </span>
             <span className="inline-flex items-center gap-1 font-bold text-emerald-900 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200 shadow-2xs text-[11px]">
               <span className="text-emerald-600">🏫</span>
-              {currentUser?.schoolName || 'SDN 01 Nusantara'}
+              {currentUser?.schoolName || 'UPT SD Negeri Remen 2'}
             </span>
             <span>telah disusun menjadi <strong className="text-purple-700 font-extrabold">{slides.length} slide</strong> siap tampil.</span>
           </p>

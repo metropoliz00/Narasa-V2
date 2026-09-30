@@ -80,7 +80,7 @@
         "id": "slide-1",
         "slideNumber": 1,
         "title": "Hasil Eksplorasi Saya: Pola Interval & KPK",
-        "subtitle": "Misi Matematika Kontekstual — Kelas V-A SDN 01 Nusantara",
+        "subtitle": "Misi Matematika Kontekstual — Kelas V UPT SD Negeri Remen 2",
         "content": "Halo teman-teman! Saya Adit Pratama. Hari ini saya menemukan matematika di pola keteraturan tangga sekolah.",
         "image": "https://images.unsplash.com/photo-1541829070764-84a7d30dd3f3?w=800&auto=format&fit=crop&q=80",
         "speakingNotes": "Beri salam pembuka dengan percaya diri.",
@@ -159,7 +159,11 @@
       "numeracyScore": 94,
       "reasoningScore": 92,
       "scaffoldingUsedCount": 1
-    }
+    },
+    "schoolId": "SDN01",
+    "schoolName": "UPT SD Negeri Remen 2",
+    "classId": "V",
+    "className": "Kelas V"
   },
   {
     "id": "session-siti-klorofil-daun",
@@ -292,7 +296,11 @@
       "numeracyScore": 86,
       "reasoningScore": 94,
       "scaffoldingUsedCount": 0
-    }
+    },
+    "schoolId": "SDN01",
+    "schoolName": "UPT SD Negeri Remen 2",
+    "classId": "V",
+    "className": "Kelas V"
   },
   {
     "id": "session-budi-kipas-rotasi",
@@ -399,7 +407,11 @@
       "numeracyScore": 96,
       "reasoningScore": 91,
       "scaffoldingUsedCount": 0
-    }
+    },
+    "schoolId": "SDN01",
+    "schoolName": "UPT SD Negeri Remen 2",
+    "classId": "V",
+    "className": "Kelas V"
   },
   {
     "id": "session-zahra-teks-deskripsi",
@@ -506,7 +518,11 @@
       "numeracyScore": 82,
       "reasoningScore": 93,
       "scaffoldingUsedCount": 0
-    }
+    },
+    "schoolId": "SDN01",
+    "schoolName": "UPT SD Negeri Remen 2",
+    "classId": "V",
+    "className": "Kelas V"
   },
   {
     "id": "session-dewi-siklus-air",
@@ -613,6 +629,10 @@
       "numeracyScore": 88,
       "reasoningScore": 95,
       "scaffoldingUsedCount": 0
-    }
+    },
+    "schoolId": "SDN01",
+    "schoolName": "UPT SD Negeri Remen 2",
+    "classId": "V",
+    "className": "Kelas V"
   }
 ]

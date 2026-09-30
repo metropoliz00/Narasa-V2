@@ -47,10 +47,10 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
   const [role, setRole] = useState<UserRole>(defaultRole);
   const [gender, setGender] = useState<UserGender>('male');
   const [name, setName] = useState('');
-  const [schoolName, setSchoolName] = useState('SDN 01 Nusantara');
-  const [schoolId, setSchoolId] = useState('SDN01');
-  const [className, setClassName] = useState('Kelas V-A');
-  const [classId, setClassId] = useState('V-A');
+  const [schoolName, setSchoolName] = useState(currentUser?.schoolName || 'UPT SD Negeri Remen 2');
+  const [schoolId, setSchoolId] = useState(currentUser?.schoolId || 'SDN01');
+  const [className, setClassName] = useState('Kelas V');
+  const [classId, setClassId] = useState('V');
   const [nisnNip, setNisnNip] = useState('');
   const [phone, setPhone] = useState('');
   const [status, setStatus] = useState<'active' | 'inactive'>('active');
@@ -100,11 +100,11 @@ export const UserAccountModal: React.FC<UserAccountModalProps> = ({
         setSchoolName(currentUser.schoolName);
         setSchoolId(currentUser.schoolId);
       } else {
-        setSchoolName('SDN 01 Nusantara');
-        setSchoolId('SDN01');
+        setSchoolName(currentUser?.schoolName || 'UPT SD Negeri Remen 2');
+        setSchoolId(currentUser?.schoolId || 'SDN01');
       }
-      setClassName(initialRole === 'student' ? 'Kelas V-A' : initialRole === 'teacher' ? 'Guru Kelas V-A' : 'Admin Sekolah');
-      setClassId(initialRole === 'student' ? 'V-A' : initialRole === 'teacher' ? 'V-A' : 'ALL');
+      setClassName(initialRole === 'student' ? 'Kelas V' : initialRole === 'teacher' ? 'Wali Kelas V' : 'Admin Sekolah');
+      setClassId(initialRole === 'student' ? 'V' : initialRole === 'teacher' ? 'V' : 'ALL');
       setNisnNip('');
       setPhone('');
       setStatus('active');

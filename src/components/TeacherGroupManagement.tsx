@@ -333,7 +333,7 @@ export const TeacherGroupManagement: React.FC<TeacherGroupManagementProps> = ({
         id: groupId,
         name,
         schoolId: currentUser.schoolId || 'SDN01',
-        schoolName: currentUser.schoolName || 'SDN 01 Nusantara',
+        schoolName: currentUser.schoolName || 'UPT SD Negeri Remen 2',
         classId: activeClassId,
         className: activeClassName,
         leaderId: leader.id,
@@ -936,7 +936,7 @@ export const TeacherGroupManagement: React.FC<TeacherGroupManagementProps> = ({
         existingGroups={groups}
         studentsInClass={studentsInClass}
         currentSchoolId={currentUser.schoolId || 'SDN01'}
-        currentSchoolName={currentUser.schoolName || 'SDN 01 Nusantara'}
+        currentSchoolName={currentUser.schoolName || 'UPT SD Negeri Remen 2'}
         currentClassId={
           selectedClassFilter !== 'all'
             ? selectedClassFilter

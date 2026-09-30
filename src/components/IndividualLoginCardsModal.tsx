@@ -62,7 +62,7 @@ export const IndividualLoginCardsModal: React.FC<IndividualLoginCardsModalProps>
 
   const handleCopyAllCredentials = () => {
     let text = `=== DAFTAR KARTU LOGIN INDIVIDU MURID ===\n`;
-    text += `Sekolah: ${currentUser.schoolName || 'SDN 01 Nusantara'}\n`;
+    text += `Sekolah: ${currentUser.schoolName || 'UPT SD Negeri Remen 2'}\n`;
     text += `Waktu Cetak: ${new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}\n\n`;
 
     targetStudents.forEach((s, idx) => {
@@ -248,7 +248,7 @@ export const IndividualLoginCardsModal: React.FC<IndividualLoginCardsModalProps>
             <div className="hidden print:flex items-center justify-between pb-3 mb-4 border-b-2 border-slate-800 text-slate-900">
               <div>
                 <h1 className="text-base font-black font-display tracking-tight uppercase">
-                  {currentUser.schoolName || 'SDN 01 Nusantara'}
+                  {currentUser.schoolName || 'UPT SD Negeri Remen 2'}
                 </h1>
                 <p className="text-[11px] font-semibold text-slate-600">
                   Kartu Kredensial Login Mandiri Murid • Platform Narasa (Literasi & Numerasi)
@@ -314,7 +314,7 @@ export const IndividualLoginCardsModal: React.FC<IndividualLoginCardsModalProps>
                               {student.className || 'Kelas V'}
                             </span>
                             <span className="text-[9px] text-slate-400 block truncate max-w-[130px]">
-                              {currentUser.schoolName || 'SDN 01 Nusantara'}
+                              {currentUser.schoolName || 'UPT SD Negeri Remen 2'}
                             </span>
                           </div>
                         </div>

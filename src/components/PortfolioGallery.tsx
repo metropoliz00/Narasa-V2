@@ -51,10 +51,10 @@ export const PortfolioGallery: React.FC<PortfolioGalleryProps> = ({
     name: 'Siswa Narasa',
     email: 'siswa@narasa.sch.id',
     role: 'student',
-    schoolName: 'SDN 01 Nusantara',
+    schoolName: 'UPT SD Negeri Remen 2',
     schoolId: 'SDN01',
-    className: 'Kelas V-A',
-    classId: 'class-5a',
+    className: 'Kelas V',
+    classId: 'V',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
   },
   groups = [],
