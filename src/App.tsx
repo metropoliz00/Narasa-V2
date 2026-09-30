@@ -429,6 +429,7 @@ export default function App() {
   // Determine if presentation tab is allowed based on teacher setting and current user
   const isPresentationAllowed = (() => {
     if (currentUser.role === 'teacher' || currentUser.role === 'admin') return true;
+    if (sessions.some(s => (s.studentId === currentUser?.id || s.studentName === currentUser?.name) && s.status === 'completed')) return true;
     if (presentationSettings.mode === 'both') return true;
     if (presentationSettings.mode === 'group_only') return Boolean(currentUser.isGroup);
     if (presentationSettings.mode === 'individual_only') return !currentUser.isGroup;
@@ -2137,16 +2138,43 @@ export default function App() {
                         slides={
                           (() => {
                             const studentSession = sessions
-                              .filter(s => s.studentId === currentUser?.id && s.status === 'completed')
-                              .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0];
-                            return studentSession?.presentation || [];
+                              .filter(s => (s.studentId === currentUser?.id || s.studentName === currentUser?.name) && s.status === 'completed')
+                              .sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime())[0] ||
+                              sessions.filter(s => s.status === 'completed').sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime())[0] ||
+                              sessions[0];
+
+                            if (studentSession?.presentation && studentSession.presentation.length > 0) {
+                              return studentSession.presentation;
+                            }
+
+                            return [
+                              {
+                                id: 'slide-fb-1',
+                                slideNumber: 1,
+                                title: `Eksplorasi Objek Nyata: ${studentSession?.imageLabel || studentSession?.learningBridge?.detectedObject || 'Pengamatan Kontekstual'}`,
+                                subtitle: `${currentUser.name} • ${currentUser.className || 'Kelas V'}`,
+                                content: studentSession?.answers?.challengeAnswer || studentSession?.answers?.reason || studentSession?.learningBridge?.observation || 'Mengamati keteraturan dan struktur objek nyata di sekitar kita untuk membangun penalaran literasi dan numerasi.',
+                                speakingNotes: 'Halo teman-teman dan guru, hari ini saya akan mempresentasikan hasil pengamatan objek nyata saya.',
+                                layout: 'observation',
+                                imageUrl: studentSession?.image
+                              },
+                              {
+                                id: 'slide-fb-2',
+                                slideNumber: 2,
+                                title: 'Analisis & Pemecahan Masalah',
+                                subtitle: 'Pilar Berpikir Komputasional',
+                                content: `1. Dekomposisi: ${studentSession?.answers?.decomposition || 'Mengurai bagian objek.'}\n2. Pola: ${studentSession?.answers?.pattern_recognition || 'Menemukan keteraturan.'}\n3. Solusi: ${studentSession?.answers?.problemSolving || studentSession?.answers?.algorithmic_thinking || 'Merumuskan aksi nyata.'}`,
+                                speakingNotes: 'Berikut adalah rincian analisis pemecahan masalah yang saya temukan.',
+                                layout: 'solution'
+                              }
+                            ];
                           })()
                         }
                         onUpdateSlides={(newSlides) => {
-                          // Find latest session and update it
                           const studentSession = sessions
-                            .filter(s => s.studentId === currentUser?.id && s.status === 'completed')
-                            .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0];
+                            .filter(s => (s.studentId === currentUser?.id || s.studentName === currentUser?.name) && s.status === 'completed')
+                            .sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime())[0] ||
+                            sessions.filter(s => s.status === 'completed')[0];
                           
                           if (studentSession) {
                             const updatedSession = { ...studentSession, presentation: newSlides };
@@ -2156,8 +2184,9 @@ export default function App() {
                         }}
                         onLaunchPresentation={() => {
                           const studentSession = sessions
-                            .filter(s => s.studentId === currentUser?.id && s.status === 'completed')
-                            .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime())[0];
+                            .filter(s => (s.studentId === currentUser?.id || s.studentName === currentUser?.name) && s.status === 'completed')
+                            .sort((a, b) => new Date(b.completedAt || 0).getTime() - new Date(a.completedAt || 0).getTime())[0] ||
+                            sessions.filter(s => s.status === 'completed')[0];
                           if (studentSession) {
                             setActiveSessionForViewer(studentSession);
                             setIsPlayingFullscreen(true);
