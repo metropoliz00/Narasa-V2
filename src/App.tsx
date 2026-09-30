@@ -1363,7 +1363,7 @@ export default function App() {
       <main className="flex-1 pb-24 md:pb-12">
         {/* Active Pedagogical Journey Mode: 9-Step Standard Learning Workflow */}
         {activeLearningBridge && currentCapturedImage ? (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-12 space-y-4 sm:space-y-6">
             <div className="flex items-center justify-between">
               <button
                 onClick={() => {
@@ -1514,8 +1514,8 @@ export default function App() {
 
         {/* ==================== STUDENT VIEW ==================== */}
         {currentRole === 'student' && (
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-            <div key={studentTab} className="animate-tab-fade space-y-6">
+          <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-28 md:pb-12 space-y-5 sm:space-y-6">
+            <div key={studentTab} className="animate-tab-fade space-y-5 sm:space-y-6">
               {/* 1. STUDENT HOME TAB */}
               {studentTab === 'home' && (
                   <div className="space-y-5 sm:space-y-6 text-left">

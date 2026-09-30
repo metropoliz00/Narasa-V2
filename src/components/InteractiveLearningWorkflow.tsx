@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   AILearningBridgeResult,
   LearningMission,
@@ -90,6 +90,21 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
     return 4;
   });
   const [isPhotoZoomOpen, setIsPhotoZoomOpen] = useState(false);
+
+  // Ribbon scroll container ref
+  const ribbonRef = useRef<HTMLDivElement>(null);
+  const activeStepButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Auto scroll active step into view on mobile
+  useEffect(() => {
+    if (activeStepButtonRef.current && ribbonRef.current) {
+      activeStepButtonRef.current.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center'
+      });
+    }
+  }, [activeStep]);
 
   // Storage key for student draft
   const draftKey = `narasa_workflow_draft_${currentUser.id}_${mission?.id || 'exploration'}`;
@@ -292,9 +307,12 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
   return (
     <div className="max-w-5xl mx-auto space-y-5 sm:space-y-6 text-left">
-      {/* Main Step Navigation Ribbon (Clean & Un-complicated) */}
-      <div className="bg-white rounded-2xl p-2.5 sm:p-3 border border-slate-200 shadow-2xs flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      {/* Main Step Navigation Ribbon (Clean & Responsive with Snap & Auto-Scroll) */}
+      <div 
+        ref={ribbonRef}
+        className="bg-white rounded-2xl p-1.5 sm:p-2 border border-slate-200 shadow-2xs overflow-x-auto no-scrollbar scroll-smooth"
+      >
+        <div className="flex items-center gap-1.5 sm:gap-2 min-w-max px-0.5">
           {[
             { step: 1, label: 'Objek & Foto', icon: '📸' },
             { step: 3, label: 'NARASA AI', icon: '✨' },
@@ -307,14 +325,15 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
             return (
               <button
                 key={item.step}
+                ref={isActive ? activeStepButtonRef : null}
                 onClick={() => setActiveStep(item.step)}
-                className={`px-3 py-1.5 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all whitespace-nowrap cursor-pointer ${
+                className={`px-3 sm:px-3.5 py-2 sm:py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer min-h-[38px] ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-xs'
+                    ? 'bg-blue-600 text-white shadow-xs scale-102 ring-2 ring-blue-400/30'
                     : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
                 }`}
               >
-                <span>{item.icon}</span>
+                <span className="text-sm">{item.icon}</span>
                 <span>{item.label}</span>
               </button>
             );
@@ -523,10 +542,10 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
             </div>
           )}
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-4 border-t border-slate-100">
             <button
               onClick={() => setActiveStep(1)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Objek & Foto</span>
@@ -534,7 +553,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => setActiveStep(4)}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+              className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
             >
               <span>Lanjut ke Masalah Kontekstual</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -547,7 +566,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
       {/* MASALAH KONTEKSTUAL (PERMASALAHAN NYATA DARI OBJEK)                        */}
       {/* ========================================================================= */}
       {activeStep === 4 && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-sm space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2">
@@ -563,7 +582,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => handleReadAloud(`${contextualProblem}. ${secondaryProblem}`)}
-              className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center gap-1.5 border border-blue-200 cursor-pointer transition-colors"
+              className="w-full sm:w-auto min-h-[38px] px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-blue-200 cursor-pointer transition-colors"
             >
               <Volume2 className="w-4 h-4 text-blue-600" />
               <span>Dengarkan Pertanyaan</span>
@@ -571,7 +590,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
           </div>
 
           {/* Contextual Problem Big Card */}
-          <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/90 via-indigo-50/50 to-white border-2 border-blue-200 space-y-4">
+          <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-blue-50/90 via-indigo-50/50 to-white border-2 border-blue-200 space-y-4">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black text-blue-900 uppercase tracking-wider">
                 Pertanyaan Pemantik & Masalah Nyata:
@@ -604,10 +623,10 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-4 border-t border-slate-100">
             <button
               onClick={() => setActiveStep(3)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke NARASA AI</span>
@@ -615,7 +634,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => setActiveStep(5)}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+              className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
             >
               <span>Lanjut ke Murid Berpikir</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -628,7 +647,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
       {/* MURID BERPIKIR (GAGASAN, ANALISIS & HIPOTESIS MURID)                       */}
       {/* ========================================================================= */}
       {activeStep === 5 && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-sm space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2">
@@ -644,7 +663,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => setActiveStep(6)}
-              className="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 border border-purple-200 cursor-pointer transition-colors"
+              className="w-full sm:w-auto min-h-[38px] px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-purple-200 cursor-pointer transition-colors"
             >
               <HelpCircle className="w-4 h-4 text-purple-600" />
               <span>Butuh Bantuan? Buka Scaffolding 📐</span>
@@ -674,7 +693,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
                       setStudentThinking((prev) => (prev ? `${prev} ${starter}` : starter));
                     }
                   }}
-                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium transition-colors cursor-pointer border border-slate-200"
+                  className="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-medium transition-colors cursor-pointer border border-slate-200"
                 >
                   + "{starter.substring(0, 32)}..."
                 </button>
@@ -727,31 +746,31 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
               value={studentThinking}
               onChange={(e) => setStudentThinking(e.target.value)}
               placeholder={`Ceritakan apa yang kamu pikirkan tentang ${learningBridge.detectedObject} ini, apa yang kamu amati, dan mengapa hal tersebut bisa terjadi...`}
-              className="w-full p-4 rounded-2xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm text-slate-800 leading-relaxed outline-none shadow-2xs"
+              className="w-full p-3.5 sm:p-4 rounded-2xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 text-sm text-slate-800 leading-relaxed outline-none shadow-2xs"
             />
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-4 border-t border-slate-100">
             <button
               onClick={() => setActiveStep(4)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 cursor-pointer transition-colors order-2 sm:order-1"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Masalah Kontekstual</span>
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto order-1 sm:order-2">
               <button
                 onClick={() => setActiveStep(6)}
-                className="px-4 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl bg-purple-100 hover:bg-purple-200 text-purple-800 font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
               >
-                <span>Lihat Bimbingan (Scaffolding)</span>
+                <span>Buka Scaffolding</span>
                 <HelpCircle className="w-3.5 h-3.5" />
               </button>
 
               <button
                 onClick={() => setActiveStep(7)}
-                className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+                className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
               >
                 <span>Lanjut ke Pemecahan Masalah</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -765,7 +784,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
       {/* SCAFFOLDING (BIMBINGAN BERTINGKAT RAMAH DARI AI & GURU)                    */}
       {/* ========================================================================= */}
       {activeStep === 6 && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-sm space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2">
@@ -787,7 +806,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
           </div>
 
           {/* 4-Tier Interactive Scaffolding Cards */}
-          <div className="space-y-3.5">
+          <div className="space-y-3 sm:space-y-3.5">
             {[
               {
                 level: 1 as const,
@@ -825,9 +844,9 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
                       : 'bg-slate-50/80 border-slate-200 opacity-75'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-3">
+                    <div className="space-y-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <h4 className="text-xs sm:text-sm font-black text-slate-800">
                           {scaffold.title}
                         </h4>
@@ -841,26 +860,27 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
                         </p>
                       ) : (
                         <p className="text-xs text-slate-500 italic pt-1">
-                          Klik tombol di sebelah kanan untuk membuka petunjuk tingkat ini.
+                          Klik tombol untuk membuka petunjuk tingkat ini.
                         </p>
                       )}
                     </div>
 
-                    <div className="shrink-0 flex items-center gap-1.5">
+                    <div className="shrink-0 flex items-center justify-end gap-1.5 pt-1 sm:pt-0">
                       {isUnlocked ? (
                         <button
                           onClick={() => handleReadAloud(scaffold.desc)}
-                          className="p-2 rounded-xl bg-white border border-purple-200 text-purple-700 hover:bg-purple-100 transition-colors cursor-pointer"
+                          className="min-h-[38px] px-3 py-1.5 rounded-xl bg-white border border-purple-200 text-purple-700 hover:bg-purple-100 transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold"
                           title="Dengarkan Petunjuk"
                         >
                           <Volume2 className="w-4 h-4" />
+                          <span className="sm:hidden">Dengarkan</span>
                         </button>
                       ) : (
                         <button
                           onClick={() => handleUnlockScaffold(scaffold.level)}
-                          className="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-2xs transition-all cursor-pointer"
+                          className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-2xs transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
                         >
-                          Buka Petunjuk 🔓
+                          <span>Buka Petunjuk 🔓</span>
                         </button>
                       )}
                     </div>
@@ -870,10 +890,10 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
             })}
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-4 border-t border-slate-100">
             <button
               onClick={() => setActiveStep(5)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Murid Berpikir</span>
@@ -881,7 +901,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => setActiveStep(7)}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer shadow-xs transition-all"
+              className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all"
             >
               <span>Lanjut ke Pemecahan Masalah</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -894,7 +914,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
       {/* PEMECAHAN MASALAH (SOLUSI AKHIR & TINDAKAN NYATA)                         */}
       {/* ========================================================================= */}
       {activeStep === 7 && (
-        <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200 shadow-sm space-y-6">
+        <div className="bg-white rounded-3xl p-4 sm:p-7 border border-slate-200 shadow-sm space-y-5 sm:space-y-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
             <div>
               <div className="flex items-center gap-2">
@@ -910,7 +930,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={() => setActiveStep(6)}
-              className="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center gap-1.5 border border-purple-200 cursor-pointer transition-colors"
+              className="w-full sm:w-auto min-h-[38px] px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center gap-1.5 border border-purple-200 cursor-pointer transition-colors"
             >
               <HelpCircle className="w-4 h-4 text-purple-600" />
               <span>Tinjau Scaffolding 📐</span>
@@ -979,12 +999,12 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
               value={problemSolving}
               onChange={(e) => setProblemSolving(e.target.value)}
               placeholder={`Tuliskan solusi nyata pemecahan masalahmu. Contoh:\n- Hal pertama yang dilakukan...\n- Cara menerapkan konsep ${learningBridge.material}...\n- Hasil dan kesimpulan yang dicapai...`}
-              className="w-full p-4 rounded-2xl border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 text-sm text-slate-800 leading-relaxed outline-none shadow-2xs"
+              className="w-full p-3.5 sm:p-4 rounded-2xl border border-slate-300 focus:border-teal-500 focus:ring-2 focus:ring-teal-100 text-sm text-slate-800 leading-relaxed outline-none shadow-2xs"
             />
           </div>
 
           {/* Primary Action Button: Finish & Generate Presentation */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-teal-50 via-blue-50 to-purple-50 border-2 border-teal-300 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50 via-blue-50 to-purple-50 border-2 border-teal-300 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
             <div className="space-y-0.5 text-left">
               <strong className="text-sm font-black text-slate-900 block">
                 Siap Menampilkan Hasil Karyamu ke Kelas? 🎉
@@ -996,17 +1016,17 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
 
             <button
               onClick={handleCompleteWorkflow}
-              className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-98 transition-all flex items-center justify-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0"
+              className="w-full sm:w-auto min-h-[48px] px-6 py-3.5 rounded-2xl bg-gradient-to-r from-teal-600 via-blue-600 to-indigo-600 hover:from-teal-700 hover:to-indigo-700 text-white font-extrabold text-sm sm:text-base shadow-md active:scale-98 transition-all flex items-center justify-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0"
             >
               <span>🚀 Selesaikan & Buat Slide Presentasi</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-4 border-t border-slate-100">
             <button
               onClick={() => setActiveStep(6)}
-              className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs flex items-center gap-1.5 hover:bg-slate-50 cursor-pointer"
+              className="w-full sm:w-auto min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-slate-50 cursor-pointer transition-colors"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Kembali ke Scaffolding</span>

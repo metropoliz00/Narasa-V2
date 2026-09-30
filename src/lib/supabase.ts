@@ -17,27 +17,32 @@ export function getSupabaseConfig(): { url: string; anonKey: string } {
     }
   }
 
-  const url =
-    customUrl ||
-    import.meta.env.VITE_SUPABASE_URL ||
-    (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.NEXT_PUBLIC_SUPABASE_URL : '') ||
-    'https://upnksnkzjkxxhrbocyrl.supabase.co';
+  const envUrl = import.meta.env.VITE_SUPABASE_URL || (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_URL || process.env?.SUPABASE_URL || process.env?.NEXT_PUBLIC_SUPABASE_URL : '') || '';
+  const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY || process.env?.SUPABASE_ANON_KEY || process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY : '') || '';
 
-  const anonKey =
-    customKey ||
-    import.meta.env.VITE_SUPABASE_ANON_KEY ||
-    (typeof process !== 'undefined' ? process.env?.VITE_SUPABASE_ANON_KEY || process.env?.SUPABASE_ANON_KEY || process.env?.NEXT_PUBLIC_SUPABASE_ANON_KEY : '') ||
-    'sb_publishable_aA0A1OBCK15KPT7R3PQwnA_FsqJpovp';
+  const url = customUrl || envUrl;
+  const anonKey = customKey || envKey;
 
-  return { url: url.trim(), anonKey: anonKey.trim() };
+  return { url: (url || '').trim(), anonKey: (anonKey || '').trim() };
 }
 
 let supabaseInstance: SupabaseClient | null = null;
+let lastConfiguredUrl = '';
+let lastConfiguredKey = '';
 
 export function getSupabaseClient(): SupabaseClient | null {
-  if (supabaseInstance) return supabaseInstance;
   const { url, anonKey } = getSupabaseConfig();
-  if (url && anonKey && url !== 'MY_SUPABASE_URL' && anonKey !== 'MY_SUPABASE_ANON_KEY') {
+  if (
+    url &&
+    anonKey &&
+    url !== 'MY_SUPABASE_URL' &&
+    anonKey !== 'MY_SUPABASE_ANON_KEY' &&
+    url.startsWith('http') &&
+    anonKey.length > 15
+  ) {
+    if (supabaseInstance && lastConfiguredUrl === url && lastConfiguredKey === anonKey) {
+      return supabaseInstance;
+    }
     try {
       supabaseInstance = createClient(url, anonKey, {
         auth: {
@@ -45,6 +50,8 @@ export function getSupabaseClient(): SupabaseClient | null {
           autoRefreshToken: true,
         },
       });
+      lastConfiguredUrl = url;
+      lastConfiguredKey = anonKey;
       return supabaseInstance;
     } catch (e) {
       console.warn('Failed to initialize Supabase client:', e);
@@ -60,7 +67,9 @@ export const isSupabaseConfigured = (): boolean => {
     url &&
     anonKey &&
     url !== 'MY_SUPABASE_URL' &&
-    anonKey !== 'MY_SUPABASE_ANON_KEY'
+    anonKey !== 'MY_SUPABASE_ANON_KEY' &&
+    url.startsWith('http') &&
+    anonKey.length > 15
   );
 };
 
@@ -108,7 +117,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase fetch users error:', error.message);
+        console.warn('Supabase fetch users notice:', error.message);
       } else if (Array.isArray(data)) {
         const supabaseList: UserProfile[] = data.map((row: any) => {
           const gender: UserGender = row.gender || 'male';
@@ -144,7 +153,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
         return supabaseList;
       }
     } catch (err) {
-      console.error('Error in Supabase dbFetchUsers:', err);
+      console.warn('Notice in Supabase dbFetchUsers, falling back to server API:', err);
     }
   }
 
