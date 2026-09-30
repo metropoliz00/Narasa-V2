@@ -87,7 +87,7 @@ export const InteractiveLearningWorkflow: React.FC<InteractiveLearningWorkflowPr
   // Current active step in the 9-step learning journey (starts at Step 4 Contextual Problem or Step 3)
   const [activeStep, setActiveStep] = useState<number>(() => {
     if (typeof initialStep === 'number' && initialStep >= 1) return initialStep;
-    return 4;
+    return 3;
   });
   const [isPhotoZoomOpen, setIsPhotoZoomOpen] = useState(false);
 

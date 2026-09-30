@@ -1531,153 +1531,97 @@ app.post("/api/generate-presentation", async (req, res) => {
     const solutionAns = answers?.problemSolving || answers?.algorithmicThinking || answers?.strategy || 'Menyusun solusi pemecahan masalah kontekstual yang sistematis.';
     const contextualQ = learningBridge?.guidingQuestions?.[0] || `Bagaimana menyelesaikan tantangan nyata terkait ${objName}?`;
 
-    // Structured 8-slide presentation aligned with the 9-Step Learning Journey
+    // Structured 5-slide presentation as requested
     const slides = [
       {
         id: "slide-1",
         slideNumber: 1,
-        title: `Langkah 1 & 2: Eksplorasi Objek Nyata "${objName}"`,
-        subtitle: `${missionTitle || 'Proyek Penalaran STEM'} • Oleh ${studentName}`,
-        content: `Halo semuanya! Saya ${studentName}. Hari ini saya akan mempresentasikan hasil penyelidikan objek foto "${objName}" di lingkungan sekitar kita untuk memahami konsep ${matName}.`,
+        title: `Identitas Murid & Portofolio Pengamatan`,
+        subtitle: `Misi: ${missionTitle || 'Eksplorasi Kontekstual'}`,
+        content: `Halo! Nama saya ${studentName}. Saya berasal dari kelas ${studentSession.className || 'V'} di ${studentSession.schoolName || 'SDN 01 Nusantara'}. Hari ini saya akan mempresentasikan hasil penyelidikan objek "${objName}".`,
         image: image,
-        badge: "🔍 Objek Nyata & 📸 Foto",
-        tags: [matName, subjName, "Pengamatan Nyata"],
-        keyHighlight: `Mempelajari konsep ${matName} dari objek nyata di sekitar kita.`,
-        speakingNotes: "Beri salam pembuka dengan hangat dan senyum. Sebutkan namamu dan perkenalkan objek foto nyata yang kamu selidiki.",
+        badge: "👤 Identitas Murid",
+        tags: [subjName, "Portofolio Siswa"],
+        keyHighlight: `Siap mempresentasikan hasil eksplorasi objek nyata ${objName}!`,
+        speakingNotes: `Beri salam dengan ramah. Perkenalkan nama lengkapmu (${studentName}), asal sekolah, dan objek yang kamu amati.`,
         layout: "title",
         supportVisualType: "photo"
       },
       {
         id: "slide-2",
         slideNumber: 2,
-        title: "Langkah 3: Analisis Pintar NARASA AI",
-        subtitle: `Pemindaian Visual & Jembatan Materi Kurikulum`,
-        content: learningBridge?.observation || `Dari hasil analisis NARASA AI terhadap foto "${objName}", kita menemukan hubungan nyata dengan materi pelajaran kita.`,
+        title: `Paparan Materi: ${matName}`,
+        subtitle: `Kajian Konsep Kurikulum & Target Pembelajaran`,
+        content: learningBridge?.simpleMaterialSummary || `Materi ${matName} (${subjName}) mengajarkan kita tentang keteraturan, struktur, dan hubungan logis di sekitar kita. Target pembelajaran: ${learningBridge?.learningTarget || 'Memahami konsep dasar materi.'}`,
         bullets: [
-          `📸 Objek Terdeteksi: ${objName} (${learningBridge?.context || 'Lingkungan Nyata'})`,
-          `📚 Materi Pelajaran: ${matName} (${subjName})`,
-          `🎯 Target Pemahaman: ${learningBridge?.learningTarget || `Memahami cara kerja ${objName}`}`
+          `📚 Mata Pelajaran: ${subjName}`,
+          `🎯 Materi Pokok: ${matName}`,
+          `💡 Konsep Inti: ${learningBridge?.learningBridge || 'Memahami fenomena nyata secara ilmiah.'}`
         ],
         image: image,
-        badge: "✨ NARASA AI",
-        tags: ["Konteks Kurikulum", "Pemindaian AI"],
-        keyHighlight: learningBridge?.learningBridge || `Menghubungkan ${objName} dengan materi ${matName}.`,
-        speakingNotes: "Ajak teman-teman melihat foto di slide. Ceritakan apa yang ditemukan oleh NARASA AI dan kaitannya dengan materi pelajaran.",
+        badge: "📚 Paparan Materi",
+        tags: ["Kajian Konsep", subjName],
+        keyHighlight: `Memahami konsep ${matName} sebagai landasan berpikir.`,
+        speakingNotes: "Jelaskan ringkasan materi pelajaran yang menjadi dasar dari penyelidikanmu hari ini.",
         layout: "split-photo",
         supportVisualType: "photo"
       },
       {
         id: "slide-3",
         slideNumber: 3,
-        title: "Langkah 4: Masalah Kontekstual",
-        subtitle: `Tantangan Nyata di Lingkungan Sekitar`,
-        content: `Dari pengamatan foto "${objName}", muncul masalah dan pertanyaan kontekstual yang menantang nalar kita: "${contextualQ}"`,
+        title: `Objek Pengamatan & Observasi Nyata`,
+        subtitle: `Dokumentasi Foto & Dekomposisi Bagian`,
+        content: learningBridge?.observation || `Saya mengamati secara langsung objek "${objName}" di lingkungan sekitar. Saya menguraikan bagian-bagian penyusunnya (dekomposisi) dari luar hingga ke dalam.`,
         bullets: [
-          `❓ Masalah Kontekstual: ${contextualQ}`,
-          `🌱 Keterkaitan Nyata: Mengapa fenomena pada ${objName} ini terjadi dan apa dampaknya?`,
-          `💡 Pemicu Nalar: Mendorong kita mencari cara pemecahan masalah yang efektif`
+          `📸 Objek Nyata: ${objName}`,
+          `🔍 Hasil Observasi: ${learningBridge?.context || 'Lingkungan belajar sekitar'}`,
+          `⚙️ Dekomposisi: Mengurai bagian-bagian penyusun objek dengan teliti.`
         ],
         image: image,
-        badge: "🎯 Masalah Kontekstual",
-        tags: ["Tantangan Nyata", "Pertanyaan Pemantik"],
-        keyHighlight: `Menemukan masalah nyata di sekitar kita dari objek foto ${objName}.`,
-        speakingNotes: "Jelaskan masalah kontekstual yang muncul dari objek ini. Tanya teman-teman apakah mereka pernah menjumpai masalah serupa.",
+        badge: "🔍 Objek & Observasi",
+        tags: ["Pengamatan Konkret", "Dekomposisi"],
+        keyHighlight: `Menyelidiki struktur nyata objek ${objName}.`,
+        speakingNotes: "Tunjukkan foto di slide dan jelaskan apa saja bagian penyusun utama dari objek tersebut.",
         layout: "split-photo",
-        supportVisualType: "photo"
+        supportVisualType: "decomposition"
       },
       {
         id: "slide-4",
         slideNumber: 4,
-        title: "Langkah 5: Murid Berpikir",
-        subtitle: `Gagasan Awal & Analisis Murid`,
+        title: `Kegiatan & Penalaran Komputasional`,
+        subtitle: `Penerapan Pola & Abstraksi Berpikir Kritis`,
         content: thinkingAns,
         bullets: [
-          `🔍 Hasil Observasi: Mengamati detail struktur dan karakteristik ${objName}`,
-          `💡 Gagasan Awal: Menemukan pola keteraturan dan keterkaitan dengan materi ${matName}`,
-          `🧠 Nalar Kritis: Menghubungkan sebab-akibat fenomena secara logis`
+          `💡 Pengenalan Pola: ${patternAns}`,
+          `🎯 Abstraksi: ${abstractionAns}`,
+          `🧠 Analisis Nalar: Menghubungkan temuan visual dengan konsep ${matName}.`
         ],
         image: image,
-        badge: "💡 Murid Berpikir",
-        tags: ["Eksplorasi Ide", "Nalar Kritis"],
-        keyHighlight: `Menuangkan pemikiran awal dan analisis mandiri sebelum merumuskan solusi.`,
-        speakingNotes: "Ceritakan apa yang pertama kali kamu pikirkan saat melihat masalah tersebut dan apa gagasan awalmu.",
-        layout: "reasoning",
-        supportVisualType: "decomposition"
-      },
-      {
-        id: "slide-5",
-        slideNumber: 5,
-        title: "Langkah 6: Scaffolding (Bimbingan Adaptif)",
-        subtitle: `Petunjuk Penuntun & Konsep Kunci`,
-        content: `Dengan bantuan bimbingan scaffolding bertingkat, saya terbantu memahami konsep inti ${matName} dan analogi konkret dalam kehidupan sehari-hari.`,
-        bullets: [
-          `🔑 Konsep Kunci: Memahami kaidah utama materi ${matName}`,
-          `🌟 Analogi Nyata: Menghubungkan masalah dengan contoh perumpamaan sederhana`,
-          `🛠️ Bimbingan Langkah: Mengarahkan pemikiran dari hal yang mudah ke yang kompleks`
-        ],
-        image: image,
-        badge: "📐 Scaffolding Adaptif",
-        tags: ["Bimbingan Tutor", "Konsep Kunci"],
-        keyHighlight: scaffoldAns,
-        speakingNotes: "Jelaskan petunjuk atau konsep kunci apa yang paling membantumu saat berpikir.",
+        badge: "💡 Kegiatan & Penalaran",
+        tags: ["Berpikir Komputasional", "Analisis"],
+        keyHighlight: `Menerapkan 4 pilar berpikir komputasional dalam penyelidikan.`,
+        speakingNotes: "Ceritakan kegiatan penyelidikan yang kamu lakukan, pola apa yang kamu temukan, dan hal penting apa yang kamu pilih.",
         layout: "reasoning",
         supportVisualType: "pattern"
       },
       {
-        id: "slide-6",
-        slideNumber: 6,
-        title: "Langkah 7: Pemecahan Masalah",
-        subtitle: `Solusi Nyata & Rencana Tindakan Terstruktur`,
+        id: "slide-5",
+        slideNumber: 5,
+        title: `Pemecahan Masalah & Rencana Aksi`,
+        subtitle: `Solusi Nyata & Refleksi Pembelajaran`,
         content: solutionAns,
         bullets: [
-          `1️⃣ Tindakan Awal: Merancang langkah solusi berbasis konsep ${matName}`,
-          `2️⃣ Penerapan: Mempraktikkan cara pemecahan masalah pada objek ${objName}`,
-          `3️⃣ Hasil & Manfaat: Memberikan manfaat konkret untuk lingkungan sekitar`
+          `⚙️ Solusi Konkret: Merancang langkah aksi 1, 2, 3 yang sistematis.`,
+          `🌟 Refleksi: ${learnedAns}`,
+          `🚀 Kesimpulan: Belajar dari objek nyata membuat ilmu semakin bermakna!`
         ],
         image: image,
         badge: "⚙️ Pemecahan Masalah",
-        tags: ["Solusi Nyata", "Aksi Konkret"],
-        keyHighlight: `Solusi terstruktur berhasil memecahkan masalah kontekstual!`,
-        speakingNotes: "Sampaikan solusi yang sudah kamu rancang dengan jelas dan percaya diri. Jelaskan langkah-langkah aksinya.",
+        tags: ["Solusi Nyata", "Refleksi"],
+        keyHighlight: `Berhasil merumuskan solusi dan rencana aksi pemecahan masalah!`,
+        speakingNotes: "Sampaikan solusi akhir yang kamu tawarkan dan tutup presentasimu dengan ucapan terima kasih kepada guru dan teman-teman.",
         layout: "solution",
         supportVisualType: "algorithm"
-      },
-      {
-        id: "slide-7",
-        slideNumber: 7,
-        title: "Langkah 8: Presentasi & Diskusi Kelas",
-        subtitle: `Berbagi Karya & Sesi Tanya Jawab Teman Sekelas`,
-        content: `“Melalui 9 langkah pembelajaran kontekstual NARASA, kita belajar bahwa setiap benda di sekitar menyimpan rahasia sains dan matematika yang seru!”`,
-        bullets: [
-          `🎤 Komunikasi Terbuka: Membagikan temuan kepada Bapak/Ibu Guru dan teman-teman`,
-          `💬 Sesi Tanya Jawab: Silakan jika teman-teman ingin bertanya atau memberi tanggapan`
-        ],
-        image: image,
-        badge: "🎤 Presentasi Murid",
-        tags: ["Presentasi", "Tanya Jawab"],
-        keyHighlight: `Siap mendiskusikan hasil karya bersama teman-teman sekelas! 💬`,
-        speakingNotes: "Ajak teman-teman sekelas berdiskusi dan persilakan mereka mengajukan pertanyaan.",
-        layout: "conclusion",
-        supportVisualType: "summary"
-      },
-      {
-        id: "slide-8",
-        slideNumber: 8,
-        title: "Langkah 9: Refleksi Pengalaman Belajar",
-        subtitle: `Temuan Baru, Tantangan, dan Komitmen Belajar`,
-        content: `Selama melakukan penyelidikan pada ${objName}, saya mempelajari banyak hal baru dan berhasil menyelesaikan tantangan dengan baik.`,
-        bullets: [
-          `🌟 Pelajaran Berharga: ${learnedAns}`,
-          `💪 Cara Mengatasi Kesulitan: ${solvedAns}`,
-          `🚀 Tindak Lanjut: Ingin terus mengamati benda-benda nyata lain di sekitar kita`
-        ],
-        image: image,
-        badge: "🌱 Refleksi Diri",
-        tags: ["Refleksi Diri", "Karakter Mandiri"],
-        keyHighlight: `Belajar dari pengamatan nyata membuat ilmu ${matName} semakin hidup dan bermakna!`,
-        speakingNotes: "Tutup presentasimu dengan refleksi tulus tentang perasaan dan hal berharga yang kamu dapatkan.",
-        layout: "reflection",
-        supportVisualType: "reflection"
       }
     ];
 

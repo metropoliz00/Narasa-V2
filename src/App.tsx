@@ -1058,7 +1058,7 @@ export default function App() {
           missionId: targetMission.id || null,
           missionTitle: targetMission.title,
           subject: targetMission.subject,
-          activeStep: 4,
+          activeStep: 3,
           currentCapturedImage: imageDataUrl,
           currentImageLabel: objectNameHint,
           activeLearningBridge: bridgeResult,
@@ -1070,7 +1070,7 @@ export default function App() {
           updatedAt: new Date().toISOString()
         };
         setActiveCloudDraft(initialDraft);
-        setDraftInitialStep(4);
+        setDraftInitialStep(3);
         setDraftInitialThinking('');
         setDraftInitialProblemSolving('');
         setDraftInitialUnlockedLevels([1]);
