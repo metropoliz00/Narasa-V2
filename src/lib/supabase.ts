@@ -107,6 +107,8 @@ export async function testSupabaseConnection(): Promise<{ success: boolean; mess
 // USER REPOSITORY (REAL DATABASE)
 // ==========================================
 export async function dbFetchUsers(): Promise<UserProfile[]> {
+  let fetchedList: UserProfile[] = [];
+
   // 1. Primary: Load from Supabase Cloud if configured
   const client = getSupabaseClient();
   if (client) {
@@ -119,7 +121,7 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
       if (error) {
         console.warn('Supabase fetch users notice:', error.message);
       } else if (Array.isArray(data)) {
-        const supabaseList: UserProfile[] = data.map((row: any) => {
+        fetchedList = data.map((row: any) => {
           const gender: UserGender = row.gender || 'male';
           const isCustomBase64 = row.avatar && row.avatar.startsWith('data:image');
           const avatar = isCustomBase64 ? row.avatar : getDefaultAvatar(row.role, gender);
@@ -144,72 +146,102 @@ export async function dbFetchUsers(): Promise<UserProfile[]> {
             groupMembers: Array.isArray(row.group_members) ? row.group_members : []
           };
         });
-
-        // Store pure Supabase data in local cache
-        try {
-          localStorage.setItem('narasa_users_data', JSON.stringify(supabaseList));
-        } catch (e) {}
-
-        return supabaseList;
       }
     } catch (err) {
       console.warn('Notice in Supabase dbFetchUsers, falling back to server API:', err);
     }
   }
 
-  // 2. Secondary: Load from Server-side Database API (/api/users)
-  try {
-    const res = await fetch('/api/users');
-    if (res.ok) {
-      const serverUsers = await res.json();
-      if (Array.isArray(serverUsers) && serverUsers.length > 0) {
-        const normalizedList: UserProfile[] = serverUsers.map((u: any) => {
-          const gender: UserGender = u.gender || 'male';
-          const isCustomBase64 = u.avatar && typeof u.avatar === 'string' && u.avatar.startsWith('data:image');
-          const avatar = isCustomBase64 ? u.avatar : getDefaultAvatar(u.role, gender);
-          return {
-            id: u.id,
-            name: u.name,
-            role: u.role,
-            gender,
-            avatar,
-            schoolName: u.schoolName || u.school_name || 'SDN 01 Nusantara',
-            schoolId: u.schoolId || u.school_id || 'SDN01',
-            className: (u.className || u.class_name || (u.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${u.classId || u.class_id || 'V-A'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
-            classId: u.classId || u.class_id || 'V-A',
-            email: u.email || `${(u.name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '')}@narasa.id`,
-            status: u.status || 'active',
-            nisnNip: u.nisnNip || u.nisn_nip || '',
-            username: u.username || undefined,
-            password: u.password || undefined,
-            phone: u.phone || '',
-            joinedDate: u.joinedDate || u.joined_date || 'Hari ini',
-            isGroup: Boolean(u.isGroup || u.is_group),
-            groupMembers: Array.isArray(u.groupMembers) ? u.groupMembers : Array.isArray(u.group_members) ? u.group_members : []
-          };
-        });
-
-        try {
-          localStorage.setItem('narasa_users_data', JSON.stringify(normalizedList));
-        } catch (e) {}
-
-        return normalizedList;
+  // 2. Secondary: Load from Server-side Database API (/api/users) if fetchedList is empty
+  if (fetchedList.length === 0) {
+    try {
+      const res = await fetch('/api/users');
+      if (res.ok) {
+        const serverUsers = await res.json();
+        if (Array.isArray(serverUsers) && serverUsers.length > 0) {
+          fetchedList = serverUsers.map((u: any) => {
+            const gender: UserGender = u.gender || 'male';
+            const isCustomBase64 = u.avatar && typeof u.avatar === 'string' && u.avatar.startsWith('data:image');
+            const avatar = isCustomBase64 ? u.avatar : getDefaultAvatar(u.role, gender);
+            return {
+              id: u.id,
+              name: u.name,
+              role: u.role,
+              gender,
+              avatar,
+              schoolName: u.schoolName || u.school_name || 'SDN 01 Nusantara',
+              schoolId: u.schoolId || u.school_id || 'SDN01',
+              className: (u.className || u.class_name || (u.role === 'student' ? 'Kelas V-A' : `Guru Kelas ${u.classId || u.class_id || 'V-A'}`)).replace(/^(kelas\s*)+guru\s*kelas/gi, 'Guru Kelas').replace(/^(guru\s*kelas\s*)+/gi, 'Guru Kelas ').trim(),
+              classId: u.classId || u.class_id || 'V-A',
+              email: u.email || `${(u.name || 'user').toLowerCase().replace(/[^a-z0-9]/g, '')}@narasa.id`,
+              status: u.status || 'active',
+              nisnNip: u.nisnNip || u.nisn_nip || '',
+              username: u.username || undefined,
+              password: u.password || undefined,
+              phone: u.phone || '',
+              joinedDate: u.joinedDate || u.joined_date || 'Hari ini',
+              isGroup: Boolean(u.isGroup || u.is_group),
+              groupMembers: Array.isArray(u.groupMembers) ? u.groupMembers : Array.isArray(u.group_members) ? u.group_members : []
+            };
+          });
+        }
       }
+    } catch (err) {
+      console.warn('Gagal memuat /api/users:', err);
     }
-  } catch (err) {
-    console.warn('Gagal memuat /api/users, beralih ke Cache:', err);
   }
 
-  // 3. Fallback to cache only if offline/network failed
+  // 3. Fallback to cache
+  if (fetchedList.length === 0) {
+    try {
+      const saved = localStorage.getItem('narasa_users_data');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          fetchedList = parsed;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (fetchedList.length === 0) {
+    fetchedList = INITIAL_SYSTEM_USERS;
+  }
+
+  // MERGE with existing localStorage 'narasa_users_data' so custom user edits (schoolName, className, etc.) are never overwritten
   try {
-    const saved = localStorage.getItem('narasa_users_data');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    const savedLocal = localStorage.getItem('narasa_users_data');
+    if (savedLocal) {
+      const localUsers: UserProfile[] = JSON.parse(savedLocal);
+      if (Array.isArray(localUsers) && localUsers.length > 0) {
+        const map = new Map<string, UserProfile>();
+        fetchedList.forEach(u => map.set(u.id, u));
+        localUsers.forEach(lu => {
+          const existing = map.get(lu.id);
+          if (existing) {
+            map.set(lu.id, {
+              ...existing,
+              schoolName: lu.schoolName && lu.schoolName !== 'SDN 01 Nusantara' ? lu.schoolName : existing.schoolName,
+              className: lu.className && lu.className !== 'Kelas V-A' ? lu.className : existing.className,
+              nisnNip: lu.nisnNip || existing.nisnNip,
+              phone: lu.phone || existing.phone,
+              avatar: lu.avatar || existing.avatar,
+              name: lu.name || existing.name
+            });
+          } else {
+            map.set(lu.id, lu);
+          }
+        });
+        fetchedList = Array.from(map.values());
+      }
     }
   } catch (e) {}
 
-  return [];
+  try {
+    localStorage.setItem('narasa_users_data', JSON.stringify(fetchedList));
+  } catch (e) {}
+
+  return fetchedList;
 }
 
 // Helper to ensure users exist before inserting/updating groups (avoids foreign key constraint violation)
